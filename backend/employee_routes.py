@@ -5,10 +5,10 @@ from typing import Any
 
 from flask import Blueprint, current_app, jsonify, request
 
-from auth_routes import admin_required
-from model import normalize_employee, predict_risk
-from seed_data import SAMPLE_EMPLOYEES
-from storage import read_database, save_database
+from .auth_routes import admin_required
+from .model import normalize_employee, predict_risk
+from .seed_data import SAMPLE_EMPLOYEES
+from .storage import read_database, save_database
 
 
 employee_api = Blueprint("employees", __name__, url_prefix="/api")

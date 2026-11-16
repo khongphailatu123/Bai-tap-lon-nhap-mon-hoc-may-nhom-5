@@ -9,15 +9,15 @@ import click
 from flask import Flask, jsonify, send_from_directory
 from werkzeug.security import generate_password_hash
 
-from auth_routes import EMAIL_PATTERN, auth_api
-from employee_routes import employee_api
-from model import normalize_employee, predict_risk
-from prediction_routes import prediction_api
-from seed_data import SAMPLE_EMPLOYEES
-from storage import read_database, save_database
+from .auth_routes import EMAIL_PATTERN, auth_api
+from .employee_routes import employee_api
+from .model import normalize_employee, predict_risk
+from .prediction_routes import prediction_api
+from .seed_data import SAMPLE_EMPLOYEES
+from .storage import read_database, save_database
 
 
-ROOT_DIR = Path(__file__).resolve().parent
+ROOT_DIR = Path(__file__).resolve().parent.parent
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("STAYWISE_SECRET_KEY") or secrets.token_hex(32)
@@ -102,7 +102,7 @@ def request_too_large(_error):
 
 
 if __name__ == "__main__":
-    from storage import DATABASE_FILE
+    from .storage import DATABASE_FILE
 
     if not DATABASE_FILE.exists():
         _initial_database()

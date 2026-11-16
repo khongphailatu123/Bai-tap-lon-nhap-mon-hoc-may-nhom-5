@@ -6,10 +6,10 @@ from typing import Any
 
 from flask import Blueprint, current_app, jsonify, request
 
-from auth_routes import admin_required
-from employee_routes import _employees
-from model import predict_risk
-from storage import read_database, save_database
+from .auth_routes import admin_required
+from .employee_routes import _employees
+from .model import predict_risk
+from .storage import read_database, save_database
 
 
 prediction_api = Blueprint("predictions", __name__, url_prefix="/api")

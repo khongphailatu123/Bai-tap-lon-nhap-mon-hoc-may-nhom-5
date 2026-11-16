@@ -3,8 +3,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-import storage
-from app import app
+from backend import storage
+from backend.app import app
 from werkzeug.security import generate_password_hash
 
 

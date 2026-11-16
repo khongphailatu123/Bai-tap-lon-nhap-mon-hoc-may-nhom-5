@@ -5,22 +5,23 @@
 
 ## Giới thiệu
 
-StayWise là ứng dụng web minh họa cho đồ án môn Nhập môn Học máy. Mã nguồn được đặt trực tiếp trong thư mục dự án, không tách thành `frontend/` và `backend/`:
+StayWise là ứng dụng web minh họa cho đồ án môn Nhập môn Học máy. Các tệp giao diện nằm ở thư mục gốc; toàn bộ mã Python được nhóm trong `backend/`:
 
 ```text
 index.html                Giao diện chính
 styles.css                Điểm nạp các stylesheet
 css/                      CSS chia theo từng trang/chức năng
 js/                       JavaScript chia theo từng chức năng
-app.py                    Điểm chạy Flask và phục vụ giao diện
-auth_routes.py            Đăng nhập và API tài khoản/phân quyền
-model.py                  Công thức ước tính rủi ro minh họa
-storage.py                Lưu dữ liệu JSON cục bộ
-employee_routes.py        API quản lý hồ sơ nhân viên
-prediction_routes.py      API dự đoán và lịch sử
-seed_data.py              Dữ liệu nhân viên mẫu
+backend/                  Ứng dụng Flask và toàn bộ mã Python
+  app.py                  Điểm chạy Flask và phục vụ giao diện
+  auth_routes.py          Đăng nhập và API tài khoản/phân quyền
+  model.py                Công thức ước tính rủi ro minh họa
+  storage.py              Lưu dữ liệu JSON cục bộ
+  employee_routes.py      API quản lý hồ sơ nhân viên
+  prediction_routes.py    API dự đoán và lịch sử
+  seed_data.py            Dữ liệu nhân viên mẫu
+  tests/                  Kiểm thử API
 data/employees.json       Tự tạo khi chạy lần đầu
-tests/                    Kiểm thử API
 requirements.txt
 ```
 
@@ -40,7 +41,7 @@ Cần cài Python 3.10 trở lên.
 3. Khởi động ứng dụng:
 
    ```powershell
-   python app.py
+   python -m backend.app
    ```
 
 4. Mở <http://127.0.0.1:5000>.
@@ -52,7 +53,7 @@ Flask phục vụ giao diện và API trên cùng địa chỉ, nên trình duy�
 1. Tạo tài khoản quản trị đầu tiên trong terminal dự án:
 
    ```powershell
-   python -m flask --app app create-admin
+   python -m flask --app backend.app create-admin
    ```
 
    Lệnh sẽ hỏi email và mật khẩu (ít nhất 10 ký tự). Không có đăng ký admin công khai.

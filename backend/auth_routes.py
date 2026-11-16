@@ -9,8 +9,8 @@ from typing import Any, Callable
 from flask import Blueprint, current_app, g, jsonify, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from model import normalize_employee, predict_risk
-from storage import read_database, save_database
+from .model import normalize_employee, predict_risk
+from .storage import read_database, save_database
 
 
 auth_api = Blueprint("auth", __name__, url_prefix="/api")
@@ -30,7 +30,7 @@ def public_user(user: dict[str, Any]) -> dict[str, Any]:
 
 
 def _database() -> dict[str, Any]:
-    from employee_routes import _employees
+    from .employee_routes import _employees
 
     return read_database(_employees())
 

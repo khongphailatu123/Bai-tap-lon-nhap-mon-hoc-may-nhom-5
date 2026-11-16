@@ -11,7 +11,7 @@ from typing import Any
 DATABASE_FILE = Path(
     os.environ.get(
         "STAYWISE_DATA_FILE",
-        str(Path(__file__).resolve().parent / "data" / "employees.json"),
+        str(Path(__file__).resolve().parent.parent / "data" / "employees.json"),
     )
 ).expanduser().resolve()
 
