@@ -1,0 +1,22 @@
+.employee-stats-strip { align-items: center; background: #fff; border: 1px solid #eeeff4; border-radius: 7px; display: flex; gap: 40px; margin: 0 0 13px; padding: 12px 16px; }
+.employee-stats-strip div { align-items: baseline; display: flex; gap: 7px; }
+.employee-stats-strip div span:last-child { color: #979aaa; font-size: 9px; }
+.strip-number { color: #34384c; font-family: Manrope, sans-serif; font-size: 17px; font-weight: 700; }.text-red { color: #d86f74; }.text-yellow { color: #d5a840; }.text-green { color: #38a379; }
+.full-table-panel { padding: 0 15px 11px; }
+.table-toolbar { align-items: center; display: flex; gap: 10px; justify-content: space-between; padding: 13px 0; }
+.search-wrap { align-items: center; border: 1px solid #ececf2; border-radius: 5px; color: #a3a5b2; display: flex; gap: 7px; height: 30px; padding: 0 8px; width: 230px; }
+.search-wrap span { font-size: 17px; transform: rotate(-20deg); }
+.search-wrap input { border: 0; color: #4f5367; font-size: 9px; min-width: 0; outline: 0; width: 100%; }
+.search-wrap input::placeholder { color: #b1b3be; }
+.table-filters { align-items: center; display: flex; gap: 7px; }
+.table-filters select { background: #fff; border: 1px solid #ececf2; border-radius: 5px; color: #85899a; font-size: 9px; height: 30px; padding: 0 8px; }
+.filter-reset { border: 1px solid #ececf2; height: 30px; width: 30px; }
+.employee-data-table { min-width: 840px; }
+.employee-data-table tbody td { padding-bottom: 10px; padding-top: 10px; }
+.table-pagination { align-items: center; color: #a1a3b0; display: flex; font-size: 9px; justify-content: space-between; padding: 10px 0 0; }
+.table-pagination div { display: flex; gap: 4px; }
+.pagination-button { background: #fff; border: 1px solid #ebecf2; border-radius: 4px; color: #9295a5; font-size: 10px; height: 24px; width: 24px; }
+.pagination-button:disabled { color: #c8c9d1; cursor: default; }.pagination-button.current-page { background: #f0edff; border-color: #e6e1ff; color: #6754d8; }
+.table-empty { align-items: center; color: #9b9eae; display: flex; flex-direction: column; padding: 35px; }
+.table-empty span { font-size: 28px; }.table-empty strong { color: #53576b; font-size: 12px; margin-top: 7px; }.table-empty p { font-size: 10px; margin: 5px 0 0; }
+.hidden { display: none !important; }
