@@ -11,7 +11,38 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app-shell">
+  <section class="auth-screen" id="authView" aria-labelledby="authTitle">
+    <div class="auth-card">
+      <a class="brand auth-brand" href="#" aria-label="StayWise">
+        <span class="brand-mark"><span></span><span></span><span></span></span>
+        <span class="brand-name">staywise<span class="brand-dot">.</span></span>
+      </a>
+      <div class="auth-heading"><span class="eyebrow-dot"></span> CỔNG THÔNG TIN NHÂN SỰ</div>
+      <h1 id="authTitle">Chào mừng trở lại</h1>
+      <p class="page-subtitle" id="authSubtitle">Đăng nhập để tiếp tục tới không gian StayWise.</p>
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" id="loginTab" type="button" role="tab" aria-selected="true">Đăng nhập</button>
+        <button class="auth-tab" id="registerTab" type="button" role="tab" aria-selected="false">Đăng ký nhân viên</button>
+      </div>
+      <form id="loginForm" class="auth-form">
+        <label class="form-field"><span>Email</span><input name="email" type="email" autocomplete="username" required maxlength="254"></label>
+        <label class="form-field"><span>Mật khẩu</span><input name="password" type="password" autocomplete="current-password" required maxlength="128"></label>
+        <button class="button button-primary wide-button" type="submit">Đăng nhập</button>
+      </form>
+      <form id="registerForm" class="auth-form hidden">
+        <label class="form-field"><span>Họ tên <i>*</i></span><input name="name" type="text" autocomplete="name" required maxlength="100"></label>
+        <label class="form-field"><span>Email công việc <i>*</i></span><input name="email" type="email" autocomplete="email" required maxlength="254"></label>
+        <label class="form-field"><span>Phòng ban</span><input name="department" type="text" placeholder="Ví dụ: Kỹ thuật" maxlength="80"></label>
+        <label class="form-field"><span>Mật khẩu (ít nhất 10 ký tự) <i>*</i></span><input name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="128"></label>
+        <label class="form-field"><span>Xác nhận mật khẩu <i>*</i></span><input name="confirmPassword" type="password" autocomplete="new-password" required minlength="10" maxlength="128"></label>
+        <button class="button button-primary wide-button" type="submit">Tạo tài khoản nhân viên</button>
+        <p class="auth-note">Tài khoản đăng ký mới chỉ có quyền nhân viên. Admin được khởi tạo riêng.</p>
+      </form>
+      <p class="auth-error hidden" id="authError" role="alert"></p>
+      <p class="auth-footer">Dữ liệu tài khoản được lưu cục bộ trên máy chủ của ứng dụng.</p>
+    </div>
+  </section>
+  <div class="app-shell" id="appShell" hidden>
     <aside class="sidebar" id="sidebar">
       <a class="brand" href="#" aria-label="StayWise trang chủ">
         <span class="brand-mark"><span></span><span></span><span></span></span>
@@ -19,18 +50,22 @@
       </a>
       <div class="workspace-label">KHÔNG GIAN LÀM VIỆC</div>
       <nav class="main-nav" aria-label="Điều hướng chính">
-        <button class="nav-item active" data-page="overview"><span class="nav-icon">◫</span><span>Tổng quan</span></button>
-        <button class="nav-item" data-page="employees"><span class="nav-icon">♙</span><span>Nhân viên</span><span class="nav-count" id="navEmployeeCount">0</span></button>
-        <button class="nav-item" data-page="predict"><span class="nav-icon">⌁</span><span>Dự đoán nghỉ việc</span><span class="nav-new">AI</span></button>
-        <button class="nav-item" data-page="analytics"><span class="nav-icon">▥</span><span>Phân tích dữ liệu</span></button>
-        <button class="nav-item" data-page="model"><span class="nav-icon">◉</span><span>Mô hình ML</span></button>
+        <button class="nav-item active" data-admin-only data-page="overview"><span class="nav-icon">◫</span><span>Tổng quan</span></button>
+        <button class="nav-item" data-admin-only data-page="employees"><span class="nav-icon">♙</span><span>Nhân viên</span><span class="nav-count" id="navEmployeeCount">0</span></button>
+        <button class="nav-item" data-admin-only data-page="predict"><span class="nav-icon">⌁</span><span>Dự đoán nghỉ việc</span><span class="nav-new">AI</span></button>
+        <button class="nav-item" data-admin-only data-page="history"><span class="nav-icon">◷</span><span>Lịch sử dự đoán</span><span class="nav-count" id="navPredictionCount">0</span></button>
+        <button class="nav-item" data-admin-only data-page="analytics"><span class="nav-icon">▥</span><span>Phân tích dữ liệu</span></button>
+        <button class="nav-item" data-admin-only data-page="model"><span class="nav-icon">◉</span><span>Mô hình ML</span></button>
+        <button class="nav-item employee-only" data-page="profile"><span class="nav-icon">♙</span><span>Tài khoản của tôi</span></button>
+        <button class="nav-item employee-only" data-page="my-history"><span class="nav-icon">◷</span><span>Lịch sử của tôi</span><span class="nav-count" id="myPredictionCount">0</span></button>
       </nav>
-      <div class="sidebar-section-label">QUẢN LÝ</div>
-      <nav class="main-nav" aria-label="Quản lý">
+      <div class="sidebar-section-label" data-admin-only>QUẢN LÝ</div>
+      <nav class="main-nav" aria-label="Quản lý" data-admin-only>
         <button class="nav-item" data-page="actions"><span class="nav-icon">♡</span><span>Kế hoạch giữ chân</span><span class="nav-count" id="actionCount">0</span></button>
         <button class="nav-item" data-page="data"><span class="nav-icon">⇧</span><span>Dữ liệu &amp; báo cáo</span></button>
+        <button class="nav-item" data-page="admin"><span class="nav-icon">⚙</span><span>Tài khoản &amp; yêu cầu</span></button>
       </nav>
-      <div class="sidebar-bottom">
+      <div class="sidebar-bottom" data-admin-only>
         <div class="help-card">
           <div class="help-icon">✳</div>
           <strong>Đồ án học máy</strong>
@@ -39,9 +74,12 @@
         </div>
         <div class="profile">
           <div class="avatar avatar-purple">SW</div>
-          <div class="profile-info"><strong>Quản trị viên</strong><span>Nhóm dự án StayWise</span></div>
-          <button class="icon-button profile-menu" title="Tùy chọn tài khoản">···</button>
+          <div class="profile-info"><strong id="sidebarUserName">Quản trị viên</strong><span id="sidebarUserRole">Quản trị hệ thống</span></div>
+          <button class="icon-button profile-menu" id="logoutButton" title="Đăng xuất" aria-label="Đăng xuất">↪</button>
         </div>
+      </div>
+      <div class="sidebar-bottom employee-only" hidden>
+        <div class="profile"><div class="avatar avatar-purple" id="employeeAvatar">NV</div><div class="profile-info"><strong id="employeeSidebarName">Nhân viên</strong><span id="employeeSidebarEmail"></span></div><button class="icon-button profile-menu" id="employeeLogoutButton" title="Đăng xuất" aria-label="Đăng xuất">↪</button></div>
       </div>
     </aside>
 
@@ -51,13 +89,13 @@
         <div class="breadcrumbs"><span>Không gian làm việc</span><span class="crumb-separator">/</span><strong id="breadcrumbCurrent">Tổng quan</strong></div>
         <div class="topbar-actions">
           <div class="data-status"><span class="status-dot"></span><span id="lastUpdated">Dữ liệu đã đồng bộ</span></div>
-          <button class="icon-button notification-button" id="notificationButton" title="Thông báo" aria-label="Thông báo">♧<i></i></button>
+          <button class="icon-button notification-button" id="notificationButton" data-admin-only title="Thông báo" aria-label="Thông báo">♧<i></i></button>
           <div class="avatar avatar-purple top-avatar">SW</div>
         </div>
       </header>
 
       <div class="page-content">
-        <section class="page-view active" id="page-overview">
+        <section class="page-view active" id="page-overview" data-admin-only>
           <div class="page-heading heading-with-action">
             <div><div class="eyebrow"><span class="eyebrow-dot"></span> THỨ HAI, <span id="todayDate"></span></div><h1>Chào bạn, <span class="heading-name">đây là tổng quan</span> 👋</h1><p class="page-subtitle">Theo dõi sức khỏe nhân sự và chủ động giữ chân nhân tài.</p></div>
             <div class="heading-actions"><button class="button button-secondary" id="overviewExport">↓ <span>Xuất báo cáo</span></button><button class="button button-primary" data-page="predict">＋ <span>Dự đoán mới</span></button></div>
@@ -96,19 +134,19 @@
           <footer class="page-footer"><span>© <span class="current-year"></span> StayWise · Đồ án Nhập môn Học máy</span><span>Dữ liệu mẫu · Chỉ dùng cho mục đích học tập</span></footer>
         </section>
 
-        <section class="page-view" id="page-employees">
+        <section class="page-view" id="page-employees" data-admin-only>
           <div class="page-heading heading-with-action"><div><div class="eyebrow"><span class="eyebrow-dot"></span> QUẢN LÝ NHÂN SỰ</div><h1>Danh sách nhân viên</h1><p class="page-subtitle">Quản lý hồ sơ và theo dõi nguy cơ nghỉ việc của từng nhân viên.</p></div><div class="heading-actions"><button class="button button-secondary" id="employeeExport">↓ <span>Xuất CSV</span></button><button class="button button-primary" id="addEmployeeButton">＋ <span>Thêm nhân viên</span></button></div></div>
           <div class="employee-stats-strip"><div><span class="strip-number" id="employeePageTotal">0</span><span>Tổng nhân viên</span></div><div><span class="strip-number text-red" id="employeePageHigh">0</span><span>Rủi ro cao</span></div><div><span class="strip-number text-yellow" id="employeePageMedium">0</span><span>Rủi ro trung bình</span></div><div><span class="strip-number text-green" id="employeePageLow">0</span><span>Rủi ro thấp</span></div></div>
           <article class="panel full-table-panel">
-            <div class="table-toolbar"><div class="search-wrap"><span>⌕</span><input id="employeeSearch" type="search" placeholder="Tìm tên, email, phòng ban..." aria-label="Tìm nhân viên"></div><div class="table-filters"><select id="departmentFilter" aria-label="Lọc phòng ban"><option value="">Tất cả phòng ban</option></select><select id="riskFilter" aria-label="Lọc mức độ"><option value="">Tất cả mức độ</option><option value="high">Rủi ro cao</option><option value="medium">Rủi ro trung bình</option><option value="low">Rủi ro thấp</option></select><button class="icon-button filter-reset" id="resetFilters" title="Xóa bộ lọc">⟳</button></div></div>
+            <div class="table-toolbar"><div class="search-wrap"><span>⌕</span><input id="employeeSearch" type="search" placeholder="Tìm tên, email, phòng ban..." aria-label="Tìm nhân viên"></div><div class="table-filters"><select id="departmentFilter" aria-label="Lọc phòng ban"><option value="">Tất cả phòng ban</option></select><select id="riskFilter" aria-label="Lọc mức độ"><option value="">Tất cả mức độ</option><option value="high">Rủi ro cao</option><option value="medium">Rủi ro trung bình</option><option value="low">Rủi ro thấp</option></select><select id="employeeSort" aria-label="Sắp xếp nhân viên"><option value="risk-desc">Rủi ro cao nhất</option><option value="risk-asc">Rủi ro thấp nhất</option><option value="name-asc">Tên A–Z</option><option value="tenure-desc">Thâm niên lâu nhất</option></select><select id="pageSize" aria-label="Số nhân viên mỗi trang"><option value="10">10 / trang</option><option value="25">25 / trang</option><option value="50">50 / trang</option></select><button class="icon-button filter-reset" id="resetFilters" title="Xóa bộ lọc">⟳</button></div></div>
             <div class="table-scroll"><table class="data-table employee-data-table"><thead><tr><th>NHÂN VIÊN</th><th>PHÒNG BAN</th><th>CHỨC VỤ</th><th>THÂM NIÊN</th><th>MỨC HÀI LÒNG</th><th>ĐIỂM RỦI RO</th><th>MỨC ĐỘ</th><th></th></tr></thead><tbody id="employeeTable"></tbody></table></div>
             <div class="table-empty hidden" id="emptyEmployees"><span>⌕</span><strong>Không tìm thấy nhân viên</strong><p>Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc.</p></div>
-            <div class="table-pagination"><span id="employeeResultCount">Hiển thị 0 nhân viên</span><div><button class="pagination-button" disabled aria-label="Trang trước">‹</button><button class="pagination-button current-page" aria-label="Trang 1">1</button><button class="pagination-button" disabled aria-label="Trang sau">›</button></div></div>
+            <div class="table-pagination"><span id="employeeResultCount">Hiển thị 0 nhân viên</span><div id="employeePagination"></div></div>
           </article>
           <footer class="page-footer"><span>© <span class="current-year"></span> StayWise · Đồ án Nhập môn Học máy</span><span>Dữ liệu mẫu · Chỉ dùng cho mục đích học tập</span></footer>
         </section>
 
-        <section class="page-view" id="page-predict">
+        <section class="page-view" id="page-predict" data-admin-only>
           <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> CÔNG CỤ HỌC MÁY</div><h1>Dự đoán nguy cơ nghỉ việc</h1><p class="page-subtitle">Nhập thông tin nhân viên để ước tính mức độ rủi ro và xem các yếu tố ảnh hưởng.</p></div></div>
           <div class="prediction-layout">
             <article class="panel prediction-form-panel">
@@ -130,7 +168,7 @@
                 <button class="button button-primary predict-submit" type="submit"><span>✦</span> Phân tích nguy cơ nghỉ việc <span>→</span></button>
               </form>
             </article>
-            <aside class="panel prediction-info-panel"><div class="info-orbit"><div class="orbit-center">✦</div><span class="orbit-chip chip-one">DATA</span><span class="orbit-chip chip-two">ML</span><span class="orbit-chip chip-three">HR</span></div><h3>Ra quyết định dựa trên dữ liệu</h3><p>Mô hình đánh giá nhiều yếu tố nhân sự để đưa ra xác suất ước tính có thể giải thích.</p><div class="info-divider"></div><div class="info-feature"><span class="feature-check">✓</span><div><strong>Dễ hiểu, minh bạch</strong><span>Xem các yếu tố làm tăng hoặc giảm rủi ro.</span></div></div><div class="info-feature"><span class="feature-check">✓</span><div><strong>Hướng đến hành động</strong><span>Gợi ý cách hỗ trợ phù hợp với từng người.</span></div></div><div class="info-feature"><span class="feature-check">✓</span><div><strong>Tôn trọng quyền riêng tư</strong><span>Kết quả được lưu trong trình duyệt này.</span></div></div><div class="info-caution"><strong>✦ Ghi chú học thuật</strong><span>Điểm số sử dụng công thức mô phỏng để minh họa quy trình; không phải kết quả huấn luyện từ dữ liệu doanh nghiệp.</span></div></aside>
+            <aside class="panel prediction-info-panel"><div class="info-orbit"><div class="orbit-center">✦</div><span class="orbit-chip chip-one">DATA</span><span class="orbit-chip chip-two">ML</span><span class="orbit-chip chip-three">HR</span></div><h3>Ra quyết định dựa trên dữ liệu</h3><p>Mô hình đánh giá nhiều yếu tố nhân sự để đưa ra xác suất ước tính có thể giải thích.</p><div class="info-divider"></div><div class="info-feature"><span class="feature-check">✓</span><div><strong>Dễ hiểu, minh bạch</strong><span>Xem các yếu tố làm tăng hoặc giảm rủi ro.</span></div></div><div class="info-feature"><span class="feature-check">✓</span><div><strong>Hướng đến hành động</strong><span>Gợi ý cách hỗ trợ phù hợp với từng người.</span></div></div><div class="info-feature"><span class="feature-check">✓</span><div><strong>Tôn trọng quyền riêng tư</strong><span>Kết quả được lưu trên backend cục bộ.</span></div></div><div class="info-caution"><strong>✦ Ghi chú học thuật</strong><span>Điểm số sử dụng công thức mô phỏng để minh họa quy trình; không phải kết quả huấn luyện từ dữ liệu doanh nghiệp.</span></div></aside>
           </div>
           <article class="panel prediction-result hidden" id="predictionResult">
             <div class="result-topline"><span class="step-badge">BƯỚC 2 / 2 · KẾT QUẢ</span><button class="icon-button" id="closeResult" aria-label="Đóng kết quả">×</button></div>
@@ -139,7 +177,15 @@
           <footer class="page-footer"><span>© <span class="current-year"></span> StayWise · Đồ án Nhập môn Học máy</span><span>Dữ liệu mẫu · Chỉ dùng cho mục đích học tập</span></footer>
         </section>
 
-        <section class="page-view" id="page-analytics">
+        <section class="page-view" id="page-history" data-admin-only>
+          <div class="page-heading heading-with-action"><div><div class="eyebrow"><span class="eyebrow-dot"></span> THEO DÕI PHÂN TÍCH</div><h1>Lịch sử dự đoán</h1><p class="page-subtitle">Xem lại các lần phân tích trước đây, mức rủi ro và thời điểm thực hiện.</p></div><div class="heading-actions"><button class="button button-secondary" id="exportHistory">↓ Xuất CSV</button><button class="button button-secondary" id="clearHistory">Xóa lịch sử</button><button class="button button-primary" data-page="predict">＋ Dự đoán mới</button></div></div>
+          <div class="history-summary"><article class="panel"><span class="data-card-icon icon-purple">◷</span><span>Tổng lần dự đoán</span><strong id="historyCount">0</strong><small>được lưu trên máy</small></article><article class="panel"><span class="data-card-icon icon-orange">⌁</span><span>Rủi ro trung bình</span><strong id="historyAverageRisk">—</strong><small>trên lịch sử hiện có</small></article><article class="panel"><span class="data-card-icon icon-blue">♙</span><span>Nhân viên đã phân tích</span><strong id="historyUniquePeople">0</strong><small>tên nhân viên khác nhau</small></article></div>
+          <article class="panel full-table-panel history-panel"><div class="panel-heading"><div><h2>Các lần dự đoán gần đây</h2><p>Chọn “Xem” để mở lại kết quả và các yếu tố ảnh hưởng.</p></div></div><div class="table-scroll"><table class="data-table history-table"><thead><tr><th>THỜI GIAN</th><th>NHÂN VIÊN</th><th>PHÒNG BAN</th><th>ĐIỂM RỦI RO</th><th>MỨC ĐỘ</th><th></th></tr></thead><tbody id="historyTable"></tbody></table></div></article>
+          <div class="academic-note"><span>ⓘ</span><div><strong>Lưu ý</strong><p>Lịch sử chỉ lưu thông tin phục vụ đồ án trên máy chạy backend. Kết quả không phải dự đoán đã được kiểm chứng bằng dữ liệu thực tế.</p></div></div>
+          <footer class="page-footer"><span>© <span class="current-year"></span> StayWise · Đồ án Nhập môn Học máy</span><span>Dữ liệu mẫu · Chỉ dùng cho mục đích học tập</span></footer>
+        </section>
+
+        <section class="page-view" id="page-analytics" data-admin-only>
           <div class="page-heading heading-with-action"><div><div class="eyebrow"><span class="eyebrow-dot"></span> THÔNG TIN CHI TIẾT</div><h1>Phân tích dữ liệu</h1><p class="page-subtitle">Khám phá các xu hướng và yếu tố liên quan đến nguy cơ nghỉ việc.</p></div><button class="button button-secondary" id="analyticsExport">↓ <span>Xuất báo cáo</span></button></div>
           <div class="analytics-metrics"><article class="panel metric-card"><span>Điểm hài lòng trung bình</span><strong id="avgSatisfaction">—</strong><small>trên thang điểm 5</small><div class="metric-progress"><i id="satisfactionProgress"></i></div></article><article class="panel metric-card"><span>Thâm niên trung bình</span><strong id="avgTenure">—</strong><small>năm làm việc</small><div class="metric-progress progress-purple"><i id="tenureProgress"></i></div></article><article class="panel metric-card"><span>Lương trung bình</span><strong id="avgSalary">—</strong><small>USD / tháng (dữ liệu mẫu)</small><div class="metric-progress progress-green"><i id="salaryProgress"></i></div></article><article class="panel metric-card"><span>Tỷ lệ làm thêm</span><strong id="overtimeRate">—</strong><small>nhân viên làm thêm nhiều</small><div class="metric-progress progress-orange"><i id="overtimeProgress"></i></div></article></div>
           <div class="analytics-grid"><article class="panel analytics-chart-panel"><div class="panel-heading"><div><h2>Điểm rủi ro theo phòng ban</h2><p>So sánh số lượng nhân sự ở từng mức rủi ro</p></div><div class="mini-legend"><span><i class="legend-square square-low"></i>Thấp</span><span><i class="legend-square square-medium"></i>Trung bình</span><span><i class="legend-square square-high"></i>Cao</span></div></div><div class="stacked-chart" id="stackedChart"></div></article>
@@ -148,7 +194,7 @@
           <footer class="page-footer"><span>© <span class="current-year"></span> StayWise · Đồ án Nhập môn Học máy</span><span>Dữ liệu mẫu · Chỉ dùng cho mục đích học tập</span></footer>
         </section>
 
-        <section class="page-view" id="page-model">
+        <section class="page-view" id="page-model" data-admin-only>
           <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> TÌM HIỂU HỌC MÁY</div><h1>Mô hình dự đoán</h1><p class="page-subtitle">Tìm hiểu cách bài toán dự đoán nhân viên nghỉ việc được mô hình hóa.</p></div></div>
           <div class="model-hero"><div><span class="model-hero-label">MÔ HÌNH MINH HỌA</span><h2>Logistic Regression</h2><p>Phân loại nhị phân, ước tính xác suất một nhân viên có thể nghỉ việc dựa trên các đặc trưng nhân sự.</p><div class="model-tags"><span>Phân loại nhị phân</span><span>Dễ giải thích</span><span>Học có giám sát</span></div></div><div class="model-visual"><div class="model-node node-input">Đặc trưng<br><small>X</small></div><span class="model-arrow">→</span><div class="model-node node-process">σ (wX + b)<br><small>Sigmoid</small></div><span class="model-arrow">→</span><div class="model-node node-output">P nghỉ việc<br><small>0 — 100%</small></div></div></div>
           <div class="model-cards"><article class="panel"><div class="model-card-icon model-icon-blue">ƒ(x)</div><h3>1. Đầu vào</h3><p>Các đặc trưng ví dụ: mức hài lòng, thâm niên, số giờ làm thêm, lương, tuổi và khoảng cách đi làm.</p></article><article class="panel"><div class="model-card-icon model-icon-purple">Σ</div><h3>2. Tính xác suất</h3><p>Mô hình tuyến tính kết hợp trọng số đặc trưng, sau đó dùng hàm sigmoid để chuyển thành xác suất từ 0 đến 1.</p></article><article class="panel"><div class="model-card-icon model-icon-green">◉</div><h3>3. Phân loại</h3><p>Minh họa ngưỡng: thấp dưới 35%, trung bình từ 35% đến dưới 65%, cao từ 65% trở lên.</p></article></div>
@@ -158,7 +204,7 @@
           <footer class="page-footer"><span>© <span class="current-year"></span> StayWise · Đồ án Nhập môn Học máy</span><span>Dữ liệu mẫu · Chỉ dùng cho mục đích học tập</span></footer>
         </section>
 
-        <section class="page-view" id="page-actions">
+        <section class="page-view" id="page-actions" data-admin-only>
           <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> HÀNH ĐỘNG NHÂN SỰ</div><h1>Kế hoạch giữ chân nhân tài</h1><p class="page-subtitle">Biến tín hiệu rủi ro thành các cuộc trò chuyện hỗ trợ, tôn trọng và chủ động.</p></div></div>
           <div class="action-callout"><span>♡</span><div><strong>Tiếp cận bằng sự thấu hiểu</strong><p>Điểm rủi ro chỉ là tín hiệu tham khảo. Trao đổi trực tiếp, bảo mật và lắng nghe nhân viên trước khi hành động.</p></div></div>
           <div class="action-summary-grid"><article class="panel action-summary"><span class="action-summary-icon action-high">!</span><div><strong id="actionHighCount">0</strong><span>Nhân viên rủi ro cao</span></div></article><article class="panel action-summary"><span class="action-summary-icon action-medium">◷</span><div><strong id="actionMediumCount">0</strong><span>Cần theo dõi thêm</span></div></article><article class="panel action-summary"><span class="action-summary-icon action-low">✓</span><div><strong id="actionLowCount">0</strong><span>Đang ổn định</span></div></article></div>
@@ -167,12 +213,50 @@
           <footer class="page-footer"><span>© <span class="current-year"></span> StayWise · Đồ án Nhập môn Học máy</span><span>Dữ liệu mẫu · Chỉ dùng cho mục đích học tập</span></footer>
         </section>
 
-        <section class="page-view" id="page-data">
+        <section class="page-view" id="page-data" data-admin-only>
           <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> QUẢN LÝ DỮ LIỆU</div><h1>Dữ liệu &amp; báo cáo</h1><p class="page-subtitle">Nhập bộ dữ liệu nhân viên, tải bản sao hoặc khôi phục dữ liệu mẫu.</p></div></div>
-          <div class="data-overview-grid"><article class="panel data-overview-card"><div class="data-card-icon icon-blue">♙</div><span>Nhân viên hiện có</span><strong id="dataTotal">0</strong><small>hồ sơ trên backend</small></article><article class="panel data-overview-card"><div class="data-card-icon icon-green">◷</div><span>Cập nhật gần nhất</span><strong class="data-date" id="dataUpdatedAt">Chưa có</strong><small>lưu trong backend/data</small></article><article class="panel data-overview-card"><div class="data-card-icon icon-purple">▤</div><span>Định dạng dữ liệu</span><strong class="data-format">CSV / JSON</strong><small>UTF-8, hỗ trợ dấu tiếng Việt</small></article></div>
+          <div class="data-overview-grid"><article class="panel data-overview-card"><div class="data-card-icon icon-blue">♙</div><span>Nhân viên hiện có</span><strong id="dataTotal">0</strong><small>hồ sơ trên ứng dụng</small></article><article class="panel data-overview-card"><div class="data-card-icon icon-green">◷</div><span>Cập nhật gần nhất</span><strong class="data-date" id="dataUpdatedAt">Chưa có</strong><small>lưu trong thư mục data</small></article><article class="panel data-overview-card"><div class="data-card-icon icon-purple">▤</div><span>Định dạng dữ liệu</span><strong class="data-format">CSV / JSON</strong><small>UTF-8, hỗ trợ dấu tiếng Việt</small></article></div>
           <div class="data-tools-grid"><article class="panel data-tool-card"><div class="tool-illustration upload-illustration">↑</div><h2>Nhập dữ liệu nhân viên</h2><p>Tải lên tệp CSV để thêm hồ sơ vào ứng dụng. Các cột cần có: name, department, role, tenure, satisfaction, salary, overtime, distance.</p><label class="button button-primary upload-button" for="csvUpload">Chọn tệp CSV <span>↑</span></label><input id="csvUpload" type="file" accept=".csv,text/csv" class="visually-hidden"><div class="tool-hint" id="uploadHint">Tối đa 2 MB · Tệp CSV UTF-8</div><button class="button button-text template-download" id="templateDownload">↓ Tải tệp CSV mẫu</button></article><article class="panel data-tool-card"><div class="tool-illustration export-illustration">↓</div><h2>Xuất dữ liệu</h2><p>Tải hồ sơ nhân viên hiện có về máy dưới dạng CSV hoặc sao lưu toàn bộ dữ liệu thành JSON.</p><button class="button button-secondary wide-button" id="dataExportCsv">↓ Xuất danh sách nhân viên (CSV)</button><button class="button button-secondary wide-button" id="dataExportJson">↓ Sao lưu dữ liệu (JSON)</button><div class="tool-hint">Dữ liệu được lưu cục bộ trên máy chạy backend.</div></article><article class="panel data-tool-card reset-card"><div class="tool-illustration reset-illustration">⟳</div><h2>Khôi phục dữ liệu mẫu</h2><p>Xóa các thay đổi cục bộ và nạp lại danh sách nhân viên minh họa ban đầu.</p><button class="button button-secondary wide-button" id="resetData">Khôi phục bộ dữ liệu mẫu</button><div class="tool-hint">Hành động này sẽ thay thế dữ liệu hiện tại trên backend.</div></article></div>
           <article class="panel csv-guide"><div class="panel-heading"><div><h2>Định dạng tệp CSV</h2><p>Ứng dụng nhận các cột dưới đây; các trường số có thể để trống.</p></div></div><div class="csv-columns"><code>name</code><code>department</code><code>role</code><code>tenure</code><code>satisfaction</code><code>salary</code><code>overtime</code><code>distance</code></div><p>Ví dụ: <code>Nguyễn Minh Anh,Kỹ thuật,Chuyên viên,3,4,12000,5,10</code></p><div class="data-privacy-note"><span>♧</span> Dữ liệu được lưu trên máy đang chạy backend. Tệp CSV được gửi đến API cục bộ để kiểm tra và lưu.</div></article>
           <footer class="page-footer"><span>© <span class="current-year"></span> StayWise · Đồ án Nhập môn Học máy</span><span>Dữ liệu mẫu · Chỉ dùng cho mục đích học tập</span></footer>
+        </section>
+
+        <section class="page-view" id="page-profile">
+          <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> KHÔNG GIAN CÁ NHÂN</div><h1>Tài khoản của tôi</h1><p class="page-subtitle">Quản lý thông tin, cập nhật hồ sơ và trao đổi với quản trị viên.</p></div></div>
+          <div class="employee-account-summary"><article class="panel"><span>Mức rủi ro tham khảo hiện tại</span><strong id="myRiskScore">—</strong><small>Chỉ mang tính minh họa, không dùng cho quyết định nhân sự.</small></article><article class="panel"><span>Lịch sử phân tích cá nhân</span><strong id="myRiskHistoryCount">0</strong><small>Số lần dự đoán thuộc tài khoản của bạn.</small></article></div>
+          <div class="account-settings-grid">
+            <form class="panel account-form" id="myProfileForm"><div class="panel-heading"><div><h2>Hồ sơ cá nhân</h2><p>Cập nhật thông tin liên hệ và các yếu tố công việc của bạn.</p></div></div>
+              <div class="form-grid">
+                <label class="form-field"><span>Họ tên <i>*</i></span><input name="name" required maxlength="100"></label>
+                <label class="form-field"><span>Email <i>*</i></span><input name="email" type="email" required maxlength="254"></label>
+                <label class="form-field"><span>Phòng ban</span><input name="department" maxlength="80"></label>
+                <label class="form-field"><span>Thâm niên (năm)</span><input name="tenure" type="number" min="0" max="40" step="0.1"></label>
+                <label class="form-field"><span>Tuổi</span><input name="age" type="number" min="18" max="90"></label>
+                <label class="form-field"><span>Lương tháng (USD)</span><input name="salary" type="number" min="0" max="1000000"></label>
+                <label class="form-field"><span>Giờ làm thêm / tuần</span><input name="overtime" type="number" min="0" max="100"></label>
+                <label class="form-field"><span>Khoảng cách (km)</span><input name="distance" type="number" min="0" max="1000"></label>
+                <label class="form-field"><span>Mức hài lòng (1–5)</span><input name="satisfaction" type="number" min="1" max="5"></label>
+                <label class="form-field"><span>Cân bằng công việc (1–5)</span><input name="balance" type="number" min="1" max="5"></label>
+              </div><button class="button button-primary" type="submit">Lưu hồ sơ</button>
+            </form>
+            <div class="account-side-stack">
+              <form class="panel account-form" id="passwordForm"><div class="panel-heading"><div><h2>Đổi mật khẩu</h2><p>Dùng mật khẩu dài ít nhất 10 ký tự.</p></div></div><label class="form-field"><span>Mật khẩu hiện tại</span><input name="currentPassword" type="password" required autocomplete="current-password"></label><label class="form-field"><span>Mật khẩu mới</span><input name="newPassword" type="password" required minlength="10" maxlength="128" autocomplete="new-password"></label><label class="form-field"><span>Nhập lại mật khẩu mới</span><input name="confirmPassword" type="password" required minlength="10" maxlength="128" autocomplete="new-password"></label><button class="button button-secondary" type="submit">Cập nhật mật khẩu</button></form>
+              <form class="panel account-form" id="supportForm"><div class="panel-heading"><div><h2>Gửi yêu cầu hỗ trợ</h2><p>Chỉ quản trị viên mới xem được nội dung bạn gửi.</p></div></div><label class="form-field"><span>Tiêu đề</span><input name="subject" required maxlength="120"></label><label class="form-field"><span>Nội dung</span><textarea name="message" rows="4" required maxlength="2000"></textarea></label><button class="button button-secondary" type="submit">Gửi cho admin</button></form>
+            </div>
+          </div>
+          <article class="panel full-table-panel account-requests"><div class="panel-heading"><div><h2>Yêu cầu hỗ trợ của tôi</h2><p>Theo dõi trạng thái các yêu cầu đã gửi.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>THỜI GIAN</th><th>TIÊU ĐỀ</th><th>NỘI DUNG</th><th>TRẠNG THÁI</th></tr></thead><tbody id="mySupportRequests"></tbody></table></div></article>
+        </section>
+        <section class="page-view" id="page-my-history">
+          <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> RIÊNG TƯ CÁ NHÂN</div><h1>Lịch sử của tôi</h1><p class="page-subtitle">Chỉ hiển thị những lần phân tích được thực hiện trong tài khoản này.</p></div><button class="button button-primary" id="myRiskCheck">Cập nhật dự đoán của tôi</button></div>
+          <div class="employee-account-summary"><article class="panel"><span>Tổng lần dự đoán cá nhân</span><strong id="myHistoryCount">0</strong><small>Lưu trữ trong ứng dụng.</small></article><article class="panel"><span>Rủi ro trung bình</span><strong id="myAverageRisk">—</strong><small>Trên các lần dự đoán cá nhân.</small></article></div>
+          <article class="panel full-table-panel"><div class="table-scroll"><table class="data-table"><thead><tr><th>THỜI GIAN</th><th>ĐIỂM RỦI RO</th><th>MỨC ĐỘ</th></tr></thead><tbody id="myHistoryTable"></tbody></table></div></article>
+          <div class="academic-note"><span>ⓘ</span><div><strong>Quyền riêng tư</strong><p>Nhân viên chỉ xem được lịch sử dự đoán gắn với tài khoản của mình. Kết quả vẫn là công thức minh họa, không phải đánh giá đã được kiểm chứng.</p></div></div>
+        </section>
+        <section class="page-view" id="page-admin" data-admin-only>
+          <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> QUẢN TRỊ HỆ THỐNG</div><h1>Tài khoản &amp; yêu cầu hỗ trợ</h1><p class="page-subtitle">Quản lý quyền truy cập và xử lý yêu cầu từ nhân viên.</p></div></div>
+          <form class="panel account-form admin-password-form" id="adminPasswordForm"><div class="panel-heading"><div><h2>Bảo mật tài khoản admin</h2><p>Đổi mật khẩu quản trị viên hiện tại.</p></div></div><div class="form-grid"><label class="form-field"><span>Mật khẩu hiện tại</span><input name="currentPassword" type="password" required autocomplete="current-password"></label><label class="form-field"><span>Mật khẩu mới</span><input name="newPassword" type="password" required minlength="10" maxlength="128" autocomplete="new-password"></label><label class="form-field"><span>Nhập lại mật khẩu mới</span><input name="confirmPassword" type="password" required minlength="10" maxlength="128" autocomplete="new-password"></label></div><button class="button button-secondary" type="submit">Cập nhật mật khẩu admin</button></form>
+          <article class="panel full-table-panel"><div class="panel-heading"><div><h2>Tài khoản người dùng</h2><p>Quyền admin không thể tự đăng ký; chỉ cấp cho người đáng tin cậy.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>NGƯỜI DÙNG</th><th>VAI TRÒ</th><th>TRẠNG THÁI</th><th>NGÀY TẠO</th><th></th></tr></thead><tbody id="adminAccountsTable"></tbody></table></div></article>
+          <article class="panel full-table-panel admin-requests"><div class="panel-heading"><div><h2>Yêu cầu hỗ trợ</h2><p>Thông tin nhân viên gửi riêng tới quản trị viên.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>NHÂN VIÊN</th><th>YÊU CẦU</th><th>NỘI DUNG</th><th>NGÀY GỬI</th><th>TRẠNG THÁI</th></tr></thead><tbody id="adminSupportTable"></tbody></table></div></article>
         </section>
       </div>
     </main>
@@ -181,7 +265,7 @@
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
   <dialog class="employee-dialog" id="employeeDialog">
     <form id="addEmployeeForm" method="dialog">
-      <div class="dialog-heading"><div><span class="eyebrow">HỒ SƠ NHÂN VIÊN</span><h2>Thêm nhân viên</h2></div><button type="button" class="icon-button dialog-close" id="closeEmployeeDialog" aria-label="Đóng">×</button></div>
+      <div class="dialog-heading"><div><span class="eyebrow">HỒ SƠ NHÂN VIÊN</span><h2 id="employeeDialogTitle">Thêm nhân viên</h2></div><button type="button" class="icon-button dialog-close" id="closeEmployeeDialog" aria-label="Đóng">×</button></div>
       <div class="form-grid">
         <label class="form-field form-full"><span>Họ và tên <i>*</i></span><input id="newName" required placeholder="Nguyễn Minh Anh"></label>
         <label class="form-field"><span>Email</span><input id="newEmail" type="email" placeholder="ten@congty.vn"></label>
@@ -191,13 +275,25 @@
         <label class="form-field"><span>Hài lòng (1–5)</span><input id="newSatisfaction" type="number" min="1" max="5" value="3"></label>
         <label class="form-field"><span>Lương / tháng (USD)</span><input id="newSalary" type="number" min="0" value="8000"></label>
         <label class="form-field"><span>Làm thêm (giờ/tuần)</span><input id="newOvertime" type="number" min="0" max="80" value="5"></label>
+        <label class="form-field"><span>Khoảng cách (km)</span><input id="newDistance" type="number" min="0" max="1000" value="0"></label>
+        <label class="form-field"><span>Tuổi</span><input id="newAge" type="number" min="18" max="90" value="30"></label>
+        <label class="form-field"><span>Cân bằng công việc (1–5)</span><input id="newBalance" type="number" min="1" max="5" value="3"></label>
       </div>
-      <div class="dialog-actions"><button type="button" class="button button-secondary" id="cancelEmployee">Hủy</button><button type="submit" class="button button-primary">Thêm nhân viên</button></div>
+      <div class="dialog-actions"><button type="button" class="button button-secondary" id="cancelEmployee">Hủy</button><button type="submit" class="button button-primary" id="submitEmployee">Thêm nhân viên</button></div>
     </form>
   </dialog>
   <dialog class="confirm-dialog" id="confirmDialog">
     <form method="dialog"><div class="confirm-icon">!</div><h2>Xóa nhân viên?</h2><p id="confirmText">Hồ sơ sẽ bị xóa khỏi dữ liệu trên thiết bị này.</p><div class="dialog-actions"><button class="button button-secondary" value="cancel">Hủy</button><button class="button button-danger" id="confirmDelete" value="confirm">Xóa nhân viên</button></div></form>
   </dialog>
-  <script src="app.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/employees.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/actions.js"></script>
+  <script src="js/predictions.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

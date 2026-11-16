@@ -1,1 +1,0 @@
-"""StayWise backend package."""
