@@ -90,7 +90,7 @@ window.StayWise = {
     document.body.append(link);
     link.click();
     link.remove();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   app.navigateTo = (page) => {
     const target = document.getElementById(`page-${page}`);

@@ -34,21 +34,55 @@
     document.getElementById("sidebarUserRole").textContent = isAdmin ? "Quản trị hệ thống" : "Tài khoản nhân viên";
     document.getElementById("employeeSidebarName").textContent = user.name;
     document.getElementById("employeeSidebarEmail").textContent = user.email;
-    document.getElementById("employeeAvatar").textContent = app.initials(user.name);
-    document.querySelector(".top-avatar").textContent = app.initials(user.name);
-    document.querySelector(".top-avatar").title = user.email;
+    app.updateAvatarElement(document.getElementById("employeeAvatar"), user);
+    app.updateAvatarElement(document.getElementById("adminAvatar"), user);
+    app.updateAvatarElement(document.getElementById("topAvatar"), user);
+    document.getElementById("topAvatar").title = user.email;
     document.querySelectorAll(".page-view").forEach((view) => view.classList.remove("active"));
     app.navigateTo(isAdmin ? "overview" : "profile");
     document.getElementById("authView").hidden = true;
     document.getElementById("appShell").hidden = false;
   };
 
+  app.updateAvatarElement = (element, user) => {
+    if (!element || !user) return;
+    const image = element.querySelector("img");
+    const fallback = element.querySelector("span");
+    if (image && user.avatarDataUrl) {
+      image.src = user.avatarDataUrl;
+      image.hidden = false;
+      if (fallback) fallback.hidden = true;
+    } else {
+      if (image) {
+        image.removeAttribute("src");
+        image.hidden = true;
+      }
+      if (fallback) {
+        fallback.textContent = app.initials(user.name);
+        fallback.hidden = false;
+      } else {
+        element.textContent = app.initials(user.name);
+      }
+    }
+  };
+
   app.renderEmployeeProfile = () => {
     const employee = app.currentEmployee;
-    if (!employee) return;
     const form = document.getElementById("myProfileForm");
+    const user = app.currentUser;
+    if (!user) return;
+    form.elements.name.value = user.name;
+    form.elements.email.value = user.email;
+    document.getElementById("accountRoleLabel").textContent = user.role === "admin" ? "Quản trị viên" : "Nhân viên";
+    document.getElementById("accountCreatedLabel").textContent = app.dateLabel(user.createdAt);
+    document.getElementById("accountEmailLabel").textContent = user.email;
+    app.updateAvatarElement(document.getElementById("accountAvatarPreview"), user);
+    document.getElementById("removeAvatar").disabled = !user.avatarDataUrl;
+    if (!employee) return;
     for (const field of form.elements) {
-      if (field.name && Object.hasOwn(employee, field.name)) field.value = employee[field.name];
+      if (field.name && field.name !== "name" && field.name !== "email" && Object.hasOwn(employee, field.name)) {
+        field.value = employee[field.name];
+      }
     }
     document.getElementById("myRiskScore").textContent = `${employee.risk}%`;
     document.getElementById("myRiskHistoryCount").textContent = app.state.predictions.length;
@@ -108,6 +142,16 @@
       : date.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" });
   };
 
+  app.readImageDataUrl = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("Không thể đọc nội dung ảnh."));
+    }, { once: true });
+    reader.addEventListener("error", () => reject(new Error("Không thể đọc tệp ảnh.")), { once: true });
+    reader.readAsDataURL(file);
+  });
+
   app.bindAuthActions = () => {
     document.getElementById("loginTab").addEventListener("click", () => app.showAuthView("login"));
     document.getElementById("registerTab").addEventListener("click", () => app.showAuthView("register"));
@@ -159,26 +203,35 @@
     document.getElementById("myProfileForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       const body = Object.fromEntries(new FormData(event.currentTarget));
+      if (app.currentUser.role === "admin") {
+        for (const field of ["department", "tenure", "age", "salary", "overtime", "distance", "satisfaction", "balance"]) {
+          delete body[field];
+        }
+      }
       try {
         const result = await app.apiRequest("/me", { method: "PUT", body });
         app.currentEmployee = result.employee;
         app.currentUser = result.user;
-        app.state.employees = [result.employee];
-        app.state.lastUpdated = result.updatedAt;
+        if (result.employee) {
+          app.state.employees = [result.employee];
+          app.state.lastUpdated = result.updatedAt;
+        }
         document.getElementById("employeeSidebarName").textContent = result.user.name;
         document.getElementById("employeeSidebarEmail").textContent = result.user.email;
         document.getElementById("sidebarUserName").textContent = result.user.name;
-        document.getElementById("employeeAvatar").textContent = app.initials(result.user.name);
-        document.querySelector(".top-avatar").textContent = app.initials(result.user.name);
+        document.getElementById("sidebarUserRole").textContent = result.user.role === "admin" ? "Quản trị hệ thống" : "Tài khoản nhân viên";
+        document.getElementById("topAvatar").title = result.user.email;
+        app.updateAvatarElement(document.getElementById("employeeAvatar"), result.user);
+        app.updateAvatarElement(document.getElementById("adminAvatar"), result.user);
+        app.updateAvatarElement(document.getElementById("topAvatar"), result.user);
         app.renderEmployeeProfile();
-        app.renderOverview();
+        if (result.employee) app.renderOverview();
         app.showToast("Đã cập nhật hồ sơ của bạn.");
       } catch (error) {
         app.showToast(error.message || "Không thể cập nhật hồ sơ.", "error");
       }
     });
-    ["passwordForm", "adminPasswordForm"].forEach((id) => {
-      document.getElementById(id).addEventListener("submit", async (event) => {
+    document.getElementById("passwordForm").addEventListener("submit", async (event) => {
         event.preventDefault();
         const formElement = event.currentTarget;
         const form = new FormData(formElement);
@@ -196,7 +249,71 @@
         } catch (error) {
           app.showToast(error.message || "Không thể đổi mật khẩu.", "error");
         }
-      });
+    });
+    document.getElementById("avatarUpload").addEventListener("change", async (event) => {
+      const input = event.currentTarget;
+      const file = input.files && input.files[0];
+      if (!file) return;
+      if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+        app.showToast("Chỉ chấp nhận ảnh PNG, JPEG hoặc WebP.", "error");
+        input.value = "";
+        return;
+      }
+      if (file.size > 512 * 1024) {
+        app.showToast("Ảnh đại diện không được lớn hơn 512 KB.", "error");
+        input.value = "";
+        return;
+      }
+      try {
+        const result = await app.apiRequest("/me/avatar", {
+          method: "PUT",
+          body: { image: await app.readImageDataUrl(file) }
+        });
+        app.currentUser = result.user;
+        app.updateAvatarElement(document.getElementById("employeeAvatar"), result.user);
+        app.updateAvatarElement(document.getElementById("adminAvatar"), result.user);
+        app.updateAvatarElement(document.getElementById("topAvatar"), result.user);
+        app.renderEmployeeProfile();
+        document.getElementById("avatarStatus").textContent = `Đã cập nhật ảnh ${file.name}.`;
+        app.showToast("Đã đổi ảnh đại diện.");
+      } catch (error) {
+        app.showToast(error.message || "Không thể đổi ảnh đại diện.", "error");
+      } finally {
+        input.value = "";
+      }
+    });
+    document.getElementById("removeAvatar").addEventListener("click", async () => {
+      if (!app.currentUser.avatarDataUrl) return;
+      try {
+        const result = await app.apiRequest("/me/avatar", { method: "PUT", body: { image: null } });
+        app.currentUser = result.user;
+        app.updateAvatarElement(document.getElementById("employeeAvatar"), result.user);
+        app.updateAvatarElement(document.getElementById("adminAvatar"), result.user);
+        app.updateAvatarElement(document.getElementById("topAvatar"), result.user);
+        app.renderEmployeeProfile();
+        document.getElementById("avatarStatus").textContent = "Đã xóa ảnh; đang dùng chữ viết tắt từ tên.";
+        app.showToast("Đã xóa ảnh đại diện.");
+      } catch (error) {
+        app.showToast(error.message || "Không thể xóa ảnh đại diện.", "error");
+      }
+    });
+    document.getElementById("revokeSessions").addEventListener("click", async () => {
+      if (!window.confirm("Đăng xuất tài khoản này khỏi tất cả trình duyệt và thiết bị khác?")) return;
+      try {
+        await app.apiRequest("/me/sessions/revoke-others", { method: "POST" });
+        app.showToast("Đã đăng xuất các phiên khác. Phiên hiện tại vẫn được giữ.");
+      } catch (error) {
+        app.showToast(error.message || "Không thể thu hồi phiên đăng nhập.", "error");
+      }
+    });
+    document.getElementById("exportMyData").addEventListener("click", async () => {
+      try {
+        const result = await app.apiRequest("/me/export");
+        app.downloadBlob(JSON.stringify(result, null, 2), "staywise-du-lieu-tai-khoan.json", "application/json");
+        app.showToast("Đã tải bản sao dữ liệu cá nhân.");
+      } catch (error) {
+        app.showToast(error.message || "Không thể xuất dữ liệu cá nhân.", "error");
+      }
     });
     document.getElementById("supportForm").addEventListener("submit", async (event) => {
       event.preventDefault();

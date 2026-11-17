@@ -108,6 +108,7 @@
         app.state.lastUpdated = employeeResult.updatedAt;
         app.state.supportRequests = [];
         app.renderOverview();
+        app.renderEmployeeProfile();
         await app.loadAdminAccounts();
       } else {
         if (!sessionInfo.employee) throw new Error("Tài khoản chưa được liên kết hồ sơ nhân viên.");

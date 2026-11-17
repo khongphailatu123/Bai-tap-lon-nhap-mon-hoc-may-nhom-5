@@ -190,6 +190,92 @@ class StayWiseApiTests(unittest.TestCase):
         user = next(account for account in accounts if account["id"] == employee_id)
         self.assertFalse(user["active"])
 
+    def test_admin_can_update_own_account_and_export_private_data(self):
+        updated = self.client.put("/api/me", json={
+            "name": "Admin mới",
+            "email": "updated.admin@example.com",
+        })
+        self.assertEqual(updated.status_code, 200)
+        self.assertIsNone(updated.get_json()["employee"])
+        self.assertEqual(updated.get_json()["user"]["name"], "Admin mới")
+        self.assertEqual(self.client.get("/api/auth/me").get_json()["user"]["email"], "updated.admin@example.com")
+        self.assertEqual(self.client.put("/api/me", json={
+            "email": "invalid-email",
+        }).status_code, 400)
+        export = self.client.get("/api/me/export")
+        self.assertEqual(export.status_code, 200)
+        self.assertEqual(export.get_json()["account"]["id"], "admin-test")
+        self.assertNotIn("passwordHash", export.get_json()["account"])
+        self.assertIsNone(export.get_json()["employeeProfile"])
+
+    def test_avatar_upload_validation_and_removal(self):
+        invalid = self.client.put("/api/me/avatar", json={
+            "image": "data:image/svg+xml;base64,PHN2Zy8+",
+        })
+        self.assertEqual(invalid.status_code, 400)
+        invalid_signature = self.client.put("/api/me/avatar", json={
+            "image": "data:image/png;base64,YWJj",
+        })
+        self.assertEqual(invalid_signature.status_code, 400)
+
+        png_data_url = (
+            "data:image/png;base64,"
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jQmcAAAAASUVORK5CYII="
+        )
+        uploaded = self.client.put("/api/me/avatar", json={"image": png_data_url})
+        self.assertEqual(uploaded.status_code, 200)
+        self.assertEqual(uploaded.get_json()["user"]["avatarDataUrl"], png_data_url)
+        exported = self.client.get("/api/me/export").get_json()
+        self.assertEqual(exported["account"]["avatarDataUrl"], png_data_url)
+        self.assertNotIn("passwordHash", exported["account"])
+        listed_account = self.client.get("/api/admin/accounts").get_json()["accounts"][0]
+        self.assertNotIn("avatarDataUrl", listed_account)
+
+        removed = self.client.put("/api/me/avatar", json={"image": None})
+        self.assertEqual(removed.status_code, 200)
+        self.assertIsNone(removed.get_json()["user"]["avatarDataUrl"])
+
+    def test_revoke_other_sessions_keeps_current_session_active(self):
+        other_session = app.test_client()
+        self.assertEqual(other_session.post("/api/auth/login", json={
+            "email": "admin@example.com",
+            "password": "admin-password-123",
+        }).status_code, 200)
+
+        self.assertEqual(self.client.post("/api/me/sessions/revoke-others").status_code, 200)
+        self.assertEqual(self.client.get("/api/auth/me").get_json()["user"]["id"], "admin-test")
+        self.assertIsNone(other_session.get("/api/auth/me").get_json()["user"])
+
+    def test_employee_data_export_contains_only_its_own_records(self):
+        first_employee = app.test_client()
+        registered = first_employee.post("/api/auth/register", json={
+            "name": "Nhân viên xuất dữ liệu",
+            "email": "export@example.com",
+            "password": "export-password-123",
+        })
+        user_id = registered.get_json()["user"]["id"]
+        first_employee.post("/api/me/predict", json={})
+        first_employee.post("/api/me/support-requests", json={
+            "subject": "Yêu cầu riêng",
+            "message": "Dữ liệu chỉ thuộc tài khoản này.",
+        })
+
+        second_employee = app.test_client()
+        second_employee.post("/api/auth/register", json={
+            "name": "Nhân viên khác",
+            "email": "other-export@example.com",
+            "password": "other-export-password",
+        })
+        export = first_employee.get("/api/me/export")
+        self.assertEqual(export.status_code, 200)
+        data = export.get_json()
+        self.assertEqual(data["account"]["id"], user_id)
+        self.assertEqual(len(data["predictions"]), 1)
+        self.assertEqual(len(data["supportRequests"]), 1)
+        self.assertTrue(all(item["userId"] == user_id for item in data["predictions"]))
+        self.assertTrue(all(item["userId"] == user_id for item in data["supportRequests"]))
+        self.assertNotIn("passwordHash", data["account"])
+
     def test_admin_account_controls_preserve_one_active_admin(self):
         self_disabled = self.client.patch("/api/admin/accounts/admin-test", json={
             "active": False,

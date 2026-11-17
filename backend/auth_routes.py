@@ -1,5 +1,7 @@
 """Authentication, employee self-service, and administrator account APIs."""
 
+import base64
+import binascii
 import re
 import secrets
 from datetime import datetime, timezone
@@ -17,8 +19,8 @@ auth_api = Blueprint("auth", __name__, url_prefix="/api")
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
-def public_user(user: dict[str, Any]) -> dict[str, Any]:
-    return {
+def public_user(user: dict[str, Any], include_avatar: bool = True) -> dict[str, Any]:
+    result = {
         "id": user["id"],
         "email": user["email"],
         "name": user["name"],
@@ -27,6 +29,9 @@ def public_user(user: dict[str, Any]) -> dict[str, Any]:
         "employeeId": user.get("employeeId"),
         "createdAt": user.get("createdAt"),
     }
+    if include_avatar:
+        result["avatarDataUrl"] = user.get("avatarDataUrl")
+    return result
 
 
 def _database() -> dict[str, Any]:
@@ -199,54 +204,51 @@ def me():
 
 
 @auth_api.put("/me")
-@employee_required
+@auth_required
 def update_my_profile():
     try:
         payload = _request_object()
         database = _database()
-        user = next(
-            (item for item in database["users"] if item.get("id") == session.get("user_id")),
-            None,
-        )
+        current_user = _current_user()
+        user = next((item for item in database["users"] if item.get("id") == current_user["id"]), None)
         if user is None:
             return jsonify({"error": "Không tìm thấy tài khoản."}), 404
-        employee = _employee_for_user(database, user)
-        if employee is None:
-            return jsonify({"error": "Không tìm thấy hồ sơ nhân viên của tài khoản."}), 404
-        email = str(payload.get("email") or "").strip().casefold()
-        name = str(payload.get("name") or "").strip()
+        email = str(payload.get("email", user["email"]) or "").strip().casefold()
+        name = str(payload.get("name", user["name"]) or "").strip()
         if not name or len(name) > 100:
             raise ValueError("Họ tên phải có từ 1 đến 100 ký tự.")
         if not EMAIL_PATTERN.fullmatch(email) or len(email) > 254:
             raise ValueError("Email không hợp lệ.")
-        department = str(payload.get("department") or "").strip()
-        if len(department) > 100:
-            raise ValueError("Tên phòng ban không được vượt quá 100 ký tự.")
         if any(
             item.get("id") != user["id"] and item.get("email", "").casefold() == email
             for item in database["users"]
         ):
             return jsonify({"error": "Email này đã được tài khoản khác sử dụng."}), 409
 
-        profile_fields = {
-            "name": name,
-            "email": email,
-            "department": department,
-            "tenure": payload.get("tenure"),
-            "satisfaction": payload.get("satisfaction"),
-            "salary": payload.get("salary"),
-            "overtime": payload.get("overtime"),
-            "distance": payload.get("distance"),
-            "age": payload.get("age"),
-            "balance": payload.get("balance"),
-        }
-        updated_employee = normalize_employee(profile_fields, employee_id=employee["id"])
-        updated_employee["role"] = employee.get("role", "Nhân viên")
-        updated_employee["risk"] = predict_risk(updated_employee)["risk"]
-        database["employees"] = [
-            updated_employee if item.get("id") == employee["id"] else item
-            for item in database["employees"]
-        ]
+        updated_employee = None
+        employee = _employee_for_user(database, user)
+        if user.get("role") == "employee":
+            if employee is None:
+                return jsonify({"error": "Không tìm thấy hồ sơ nhân viên của tài khoản."}), 404
+            department = str(payload.get("department", employee.get("department", "")) or "").strip()
+            if len(department) > 100:
+                raise ValueError("Tên phòng ban không được vượt quá 100 ký tự.")
+            profile_fields = {
+                **employee,
+                "name": name,
+                "email": email,
+                "department": department,
+            }
+            for field in ("tenure", "satisfaction", "salary", "overtime", "distance", "age", "balance"):
+                if field in payload:
+                    profile_fields[field] = payload[field]
+            updated_employee = normalize_employee(profile_fields, employee_id=employee["id"])
+            updated_employee["role"] = employee.get("role", "Nhân viên")
+            updated_employee["risk"] = predict_risk(updated_employee)["risk"]
+            database["employees"] = [
+                updated_employee if item.get("id") == employee["id"] else item
+                for item in database["employees"]
+            ]
         user["name"] = name
         user["email"] = email
         updated = save_database(
@@ -255,11 +257,70 @@ def update_my_profile():
             database["users"],
             database["supportRequests"],
         )
-        return jsonify({"user": public_user(user), "employee": updated_employee, "updatedAt": updated["updatedAt"]})
+        return jsonify({
+            "user": public_user(user),
+            "employee": updated_employee,
+            "updatedAt": updated["updatedAt"],
+        })
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
     except RuntimeError as error:
         current_app.logger.exception("Cannot update employee profile")
+        return jsonify({"error": str(error)}), 500
+
+
+@auth_api.put("/me/avatar")
+@auth_required
+def update_avatar():
+    try:
+        payload = _request_object()
+        image = payload.get("image")
+        if image is not None:
+            if not isinstance(image, str) or len(image) > 700_000:
+                raise ValueError("Ảnh đại diện không được lớn hơn 512 KB.")
+            match = re.fullmatch(r"data:(image/(?:png|jpeg|webp));base64,([A-Za-z0-9+/]+={0,2})", image)
+            if not match:
+                raise ValueError("Chỉ chấp nhận ảnh PNG, JPEG hoặc WebP hợp lệ.")
+            try:
+                image_bytes = base64.b64decode(match.group(2), validate=True)
+            except (binascii.Error, ValueError) as error:
+                raise ValueError("Tệp ảnh không hợp lệ.") from error
+            if not image_bytes or len(image_bytes) > 512 * 1024:
+                raise ValueError("Ảnh đại diện không được lớn hơn 512 KB.")
+            image_type = match.group(1)
+            valid_signature = (
+                image_type == "image/png" and image_bytes.startswith(b"\x89PNG\r\n\x1a\n")
+            ) or (
+                image_type == "image/jpeg" and image_bytes.startswith(b"\xff\xd8\xff")
+            ) or (
+                image_type == "image/webp"
+                and len(image_bytes) >= 12
+                and image_bytes.startswith(b"RIFF")
+                and image_bytes[8:12] == b"WEBP"
+            )
+            if not valid_signature:
+                raise ValueError("Nội dung ảnh không khớp với định dạng tệp.")
+            image = f"data:{image_type};base64,{base64.b64encode(image_bytes).decode('ascii')}"
+
+        database = _database()
+        user = next(
+            (item for item in database["users"] if item.get("id") == session.get("user_id")),
+            None,
+        )
+        if user is None:
+            return jsonify({"error": "Không tìm thấy tài khoản."}), 404
+        user["avatarDataUrl"] = image
+        save_database(
+            database["employees"],
+            database["predictions"],
+            database["users"],
+            database["supportRequests"],
+        )
+        return jsonify({"user": public_user(user)})
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+    except RuntimeError as error:
+        current_app.logger.exception("Cannot update account avatar")
         return jsonify({"error": str(error)}), 500
 
 
@@ -298,6 +359,53 @@ def change_password():
         return jsonify({"error": str(error)}), 400
     except RuntimeError as error:
         current_app.logger.exception("Cannot change account password")
+        return jsonify({"error": str(error)}), 500
+
+
+@auth_api.post("/me/sessions/revoke-others")
+@auth_required
+def revoke_other_sessions():
+    try:
+        database = _database()
+        user = next(
+            (item for item in database["users"] if item.get("id") == session.get("user_id")),
+            None,
+        )
+        if user is None:
+            return jsonify({"error": "Không tìm thấy tài khoản."}), 404
+        user["sessionVersion"] = user.get("sessionVersion", 0) + 1
+        session["session_version"] = user["sessionVersion"]
+        save_database(
+            database["employees"],
+            database["predictions"],
+            database["users"],
+            database["supportRequests"],
+        )
+        return jsonify({"ok": True})
+    except RuntimeError as error:
+        current_app.logger.exception("Cannot revoke other account sessions")
+        return jsonify({"error": str(error)}), 500
+
+
+@auth_api.get("/me/export")
+@auth_required
+def export_my_data():
+    try:
+        database = _database()
+        user = _current_user()
+        return jsonify({
+            "exportedAt": datetime.now(timezone.utc).isoformat(),
+            "account": public_user(user),
+            "employeeProfile": _employee_for_user(database, user),
+            "predictions": [
+                item for item in database["predictions"] if item.get("userId") == user["id"]
+            ],
+            "supportRequests": [
+                item for item in database["supportRequests"] if item.get("userId") == user["id"]
+            ],
+        })
+    except RuntimeError as error:
+        current_app.logger.exception("Cannot export account data")
         return jsonify({"error": str(error)}), 500
 
 
@@ -395,7 +503,7 @@ def my_support_requests():
 @admin_required
 def list_accounts():
     database = _database()
-    return jsonify({"accounts": [public_user(user) for user in database["users"]]})
+    return jsonify({"accounts": [public_user(user, include_avatar=False) for user in database["users"]]})
 
 
 @auth_api.patch("/admin/accounts/<account_id>")

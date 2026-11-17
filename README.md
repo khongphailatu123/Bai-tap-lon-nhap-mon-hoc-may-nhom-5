@@ -59,7 +59,7 @@ Flask phục vụ giao diện và API trên cùng địa chỉ, nên trình duy�
    Lệnh sẽ hỏi email và mật khẩu (ít nhất 10 ký tự). Không có đăng ký admin công khai.
 2. Mở ứng dụng, đăng nhập bằng tài khoản admin vừa tạo. Nhân viên có thể tự đăng ký bằng email và mật khẩu; ứng dụng tạo hồ sơ cá nhân mới cho tài khoản đó.
 3. Admin vào **Tài khoản & yêu cầu** để xem danh sách tài khoản, khóa/mở khóa, cấp/hạ quyền admin và cập nhật trạng thái yêu cầu hỗ trợ.
-4. Nhân viên có thể chỉnh sửa hồ sơ cá nhân, đổi mật khẩu, xem lịch sử dự đoán riêng và gửi yêu cầu hỗ trợ riêng tới admin.
+4. Admin và nhân viên có thể vào **Quản lý tài khoản** để đổi tên/email, đổi mật khẩu, tải ảnh đại diện (PNG/JPEG/WebP, tối đa 512 KB), đăng xuất các phiên khác và tải bản sao dữ liệu cá nhân. Nhân viên còn có thể chỉnh sửa hồ sơ, xem lịch sử dự đoán riêng và gửi yêu cầu hỗ trợ riêng tới admin.
 
 Mật khẩu chỉ được lưu dưới dạng hash. Cookie phiên được đặt `HttpOnly` và `SameSite=Lax`; dùng `STAYWISE_SECRET_KEY` cố định khi triển khai để phiên không bị vô hiệu hóa sau khi khởi động lại, và bật `STAYWISE_COOKIE_SECURE=1` khi phục vụ qua HTTPS. Có thể đặt `STAYWISE_DATA_FILE` để chọn tệp JSON dữ liệu khác. Bản demo mặc định chỉ lắng nghe trên `127.0.0.1`; không triển khai trực tiếp ra Internet nếu chưa bổ sung các biện pháp bảo vệ vận hành phù hợp.
 
@@ -78,8 +78,11 @@ Mật khẩu chỉ được lưu dưới dạng hash. Cookie phiên được đ�
 | `POST` | `/api/auth/login` | Đăng nhập |
 | `POST` | `/api/auth/logout` | Đăng xuất |
 | `GET` | `/api/auth/me` | Xem tài khoản đang đăng nhập |
-| `PUT` | `/api/me` | Cập nhật hồ sơ nhân viên của mình |
+| `PUT` | `/api/me` | Cập nhật tên/email và hồ sơ nhân viên của mình |
+| `PUT` | `/api/me/avatar` | Cập nhật hoặc xóa ảnh đại diện |
 | `POST` | `/api/me/password` | Đổi mật khẩu |
+| `POST` | `/api/me/sessions/revoke-others` | Đăng xuất các phiên khác, giữ phiên hiện tại |
+| `GET` | `/api/me/export` | Tải dữ liệu thuộc tài khoản đang đăng nhập |
 | `GET/POST` | `/api/me/predictions`, `/api/me/predict` | Xem lịch sử và dự đoán cá nhân |
 | `GET` | `/api/admin/accounts` | Admin xem tài khoản |
 | `PATCH` | `/api/admin/accounts/<id>` | Admin khóa/mở khóa và cấp/hạ quyền |
@@ -94,7 +97,8 @@ Mật khẩu chỉ được lưu dưới dạng hash. Cookie phiên được đ�
 - Dự đoán nguy cơ, xem các yếu tố ảnh hưởng và gợi ý trao đổi.
 - Admin có thể xem, thống kê, xuất CSV và xóa lịch sử dự đoán; lịch sử của nhân viên được tách riêng theo tài khoản.
 - Phân tích dữ liệu, kế hoạch giữ chân và giải thích Logistic Regression.
-- Đăng nhập/đăng ký nhân viên; hồ sơ cá nhân, đổi mật khẩu, lịch sử riêng và gửi yêu cầu hỗ trợ.
+- Đăng nhập/đăng ký nhân viên; quản lý tài khoản chung, đổi mật khẩu, ảnh đại diện, thu hồi phiên khác và xuất dữ liệu riêng.
+- Nhân viên quản lý hồ sơ, xem lịch sử dự đoán riêng và gửi yêu cầu hỗ trợ.
 - Khu vực admin quản lý hồ sơ nhân viên, tài khoản, phân quyền và yêu cầu hỗ trợ.
 - Thiết kế responsive cho máy tính và thiết bị di động.
 
