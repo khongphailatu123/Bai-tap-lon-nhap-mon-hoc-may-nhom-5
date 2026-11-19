@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --sw-canvas: #f6f7fb;
+  --sw-surface: #ffffff;
+  --sw-ink: #20243a;
+  --sw-muted: #74788d;
+  --sw-line: #eceef4;
+  --sw-purple: #6f5ce8;
+  --sw-purple-dark: #5542d2;
+  --sw-purple-soft: #f0edff;
+}
+
+body {
+  margin: 0;
+  background-color: var(--sw-canvas);
+  color: var(--sw-ink);
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: "Manrope", "DM Sans", sans-serif;
+}
+
+.font-mono-num {
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}

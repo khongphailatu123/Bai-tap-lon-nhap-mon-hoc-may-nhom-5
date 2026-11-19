@@ -1,0 +1,6 @@
+{
+  "name": "StayWise — Cổng nhân viên & Quản lý tài khoản",
+  "description": "Giao diện nhân viên StayWise với menu avatar tương tác, quản lý tài khoản, đổi ảnh đại diện, bảo mật và tiện ích cá nhân.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
