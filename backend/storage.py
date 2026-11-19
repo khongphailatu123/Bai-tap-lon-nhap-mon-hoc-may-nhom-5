@@ -44,6 +44,7 @@ def save_database(
     predictions: list[dict[str, Any]],
     users: list[dict[str, Any]],
     support_requests: list[dict[str, Any]],
+    extra_data: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     payload = {
         "updatedAt": now_utc(),
@@ -52,6 +53,20 @@ def save_database(
         "users": users,
         "supportRequests": support_requests,
     }
+    if DATABASE_FILE.exists():
+        try:
+            with DATABASE_FILE.open("r", encoding="utf-8") as database_file:
+                previous = json.load(database_file)
+        except (OSError, json.JSONDecodeError) as error:
+            raise RuntimeError("Không thể đọc dữ liệu trên máy chủ.") from error
+        if isinstance(previous, dict):
+            payload.update({
+                key: value
+                for key, value in previous.items()
+                if key not in payload and key != "updatedAt"
+            })
+    if extra_data:
+        payload.update(extra_data)
     DATABASE_FILE.parent.mkdir(parents=True, exist_ok=True)
     temporary_path = None
     try:

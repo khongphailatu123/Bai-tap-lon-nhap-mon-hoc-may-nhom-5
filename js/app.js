@@ -110,17 +110,21 @@
         app.renderOverview();
         app.renderEmployeeProfile();
         await app.loadAdminAccounts();
+        await app.loadAdminEmployeePortal();
       } else {
         if (!sessionInfo.employee) throw new Error("Tài khoản chưa được liên kết hồ sơ nhân viên.");
-        const [historyResult, requestResult] = await Promise.all([
+        const [historyResult, requestResult, portalResult] = await Promise.all([
           app.apiRequest("/me/predictions"),
-          app.apiRequest("/me/support-requests")
+          app.apiRequest("/me/support-requests"),
+          app.apiRequest("/employee-portal")
         ]);
         app.state.employees = [sessionInfo.employee];
         app.state.predictions = historyResult.history;
         app.state.supportRequests = requestResult.requests;
+        app.state.employeePortal = portalResult;
         app.renderOverview();
         app.renderEmployeeProfile();
+        app.renderEmployeePortal();
         app.renderMyHistory();
       }
     } catch (error) {
@@ -145,6 +149,7 @@
     }).toUpperCase();
     document.querySelectorAll(".current-year").forEach((element) => { element.textContent = now.getFullYear(); });
     app.bindAuthActions();
+    app.bindEmployeePortalActions();
     bindNavigation();
     bindEmployeeActions();
     bindPredictionActions();

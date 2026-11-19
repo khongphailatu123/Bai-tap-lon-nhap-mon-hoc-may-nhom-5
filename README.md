@@ -84,6 +84,15 @@ Mật khẩu chỉ được lưu dưới dạng hash. Cookie phiên được đ�
 | `POST` | `/api/me/sessions/revoke-others` | Đăng xuất các phiên khác, giữ phiên hiện tại |
 | `GET` | `/api/me/export` | Tải dữ liệu thuộc tài khoản đang đăng nhập |
 | `GET/POST` | `/api/me/predictions`, `/api/me/predict` | Xem lịch sử và dự đoán cá nhân |
+| `GET` | `/api/employee-portal` | Tải tiện ích, thông báo và dữ liệu riêng của nhân viên |
+| `POST/DELETE` | `/api/employee-portal/leaves` | Gửi hoặc hủy đơn nghỉ phép đang chờ |
+| `POST/PUT/DELETE` | `/api/employee-portal/goals` | Tạo, cập nhật tiến độ và xóa mục tiêu cá nhân |
+| `POST/PATCH` | `/api/employee-portal/training/<id>` | Đăng ký khóa học và ghi nhận hoàn thành |
+| `POST` | `/api/employee-portal/feedback` | Gửi đánh giá ẩn danh |
+| `POST/PATCH/DELETE` | `/api/employee-portal/tasks` | Tạo lịch cá nhân, hoàn thành hoặc xóa việc |
+| `POST` | `/api/employee-portal/reviews` | Gửi bản tự đánh giá định kỳ |
+| `GET` | `/api/admin/employee-portal` | Admin xem đơn nghỉ, góp ý ẩn danh và tự đánh giá |
+| `POST/PATCH` | `/api/admin/employee-portal/...` | Đăng thông báo, duyệt nghỉ và phản hồi tự đánh giá |
 | `GET` | `/api/admin/accounts` | Admin xem tài khoản |
 | `PATCH` | `/api/admin/accounts/<id>` | Admin khóa/mở khóa và cấp/hạ quyền |
 | `GET` | `/api/admin/support-requests` | Admin xem yêu cầu hỗ trợ |
@@ -99,6 +108,8 @@ Mật khẩu chỉ được lưu dưới dạng hash. Cookie phiên được đ�
 - Phân tích dữ liệu, kế hoạch giữ chân và giải thích Logistic Regression.
 - Đăng nhập/đăng ký nhân viên; quản lý tài khoản chung, đổi mật khẩu, ảnh đại diện, thu hồi phiên khác và xuất dữ liệu riêng.
 - Nhân viên quản lý hồ sơ, xem lịch sử dự đoán riêng và gửi yêu cầu hỗ trợ.
+- Cổng nhân viên có đơn nghỉ phép (admin duyệt), mục tiêu cá nhân, khóa học, thông báo đã đọc/chưa đọc, góp ý ẩn danh, lịch việc cần làm và tự đánh giá định kỳ.
+- Admin có thể đăng thông báo, xử lý đơn nghỉ, xem góp ý (không kèm danh tính) và phản hồi phiếu tự đánh giá.
 - Khu vực admin quản lý hồ sơ nhân viên, tài khoản, phân quyền và yêu cầu hỗ trợ.
 - Thiết kế responsive cho máy tính và thiết bị di động.
 

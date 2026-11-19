@@ -11,6 +11,7 @@ from werkzeug.security import generate_password_hash
 
 from .auth_routes import EMAIL_PATTERN, auth_api
 from .employee_routes import employee_api
+from .employee_portal_routes import employee_portal_api
 from .model import normalize_employee, predict_risk
 from .prediction_routes import prediction_api
 from .seed_data import SAMPLE_EMPLOYEES
@@ -30,6 +31,7 @@ app.config.update(
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 app.register_blueprint(auth_api)
 app.register_blueprint(employee_api)
+app.register_blueprint(employee_portal_api)
 app.register_blueprint(prediction_api)
 
 

@@ -403,6 +403,13 @@ def export_my_data():
             "supportRequests": [
                 item for item in database["supportRequests"] if item.get("userId") == user["id"]
             ],
+            "employeePortal": {
+                key: [
+                    item for item in database.get("employeePortal", {}).get(key, [])
+                    if item.get("userId") == user["id"]
+                ]
+                for key in ("leaveRequests", "goals", "enrollments", "tasks", "reviews")
+            },
         })
     except RuntimeError as error:
         current_app.logger.exception("Cannot export account data")

@@ -276,6 +276,172 @@ class StayWiseApiTests(unittest.TestCase):
         self.assertTrue(all(item["userId"] == user_id for item in data["supportRequests"]))
         self.assertNotIn("passwordHash", data["account"])
 
+    def test_employee_leave_requests_are_private_and_admin_can_review(self):
+        employee_client = app.test_client()
+        employee_client.post("/api/auth/register", json={
+            "name": "Nhân viên xin nghỉ",
+            "email": "leave@example.com",
+            "password": "leave-password-123",
+        })
+        invalid = employee_client.post("/api/employee-portal/leaves", json={
+            "startDate": "2026-11-20",
+            "endDate": "2026-11-19",
+            "type": "annual",
+            "reason": "Nghỉ phép",
+        })
+        self.assertEqual(invalid.status_code, 400)
+        created = employee_client.post("/api/employee-portal/leaves", json={
+            "startDate": "2026-11-20",
+            "endDate": "2026-11-21",
+            "type": "annual",
+            "reason": "Việc gia đình",
+        })
+        self.assertEqual(created.status_code, 201)
+        request_id = created.get_json()["request"]["id"]
+        self.assertEqual(len(employee_client.get("/api/employee-portal").get_json()["leaveRequests"]), 1)
+
+        other_employee = app.test_client()
+        other_employee.post("/api/auth/register", json={
+            "name": "Nhân viên khác",
+            "email": "leave-other@example.com",
+            "password": "leave-other-password",
+        })
+        self.assertEqual(len(other_employee.get("/api/employee-portal").get_json()["leaveRequests"]), 0)
+        self.assertEqual(other_employee.delete(f"/api/employee-portal/leaves/{request_id}").status_code, 404)
+
+        self.assertEqual(self.client.get("/api/admin/employee-portal").status_code, 200)
+        reviewed = self.client.patch(f"/api/admin/employee-portal/leaves/{request_id}", json={
+            "status": "approved",
+            "adminNote": "Đã duyệt.",
+        })
+        self.assertEqual(reviewed.status_code, 200)
+        employee_request = employee_client.get("/api/employee-portal").get_json()["leaveRequests"][0]
+        self.assertEqual(employee_request["status"], "approved")
+        self.assertEqual(employee_request["adminNote"], "Đã duyệt.")
+        self.assertEqual(self.client.patch(f"/api/admin/employee-portal/leaves/{request_id}", json={
+            "status": "rejected",
+        }).status_code, 409)
+
+    def test_employee_goals_tasks_and_training_enrollment_are_scoped(self):
+        employee_client = app.test_client()
+        employee_client.post("/api/auth/register", json={
+            "name": "Nhân viên mục tiêu",
+            "email": "goals@example.com",
+            "password": "goals-password-123",
+        })
+        goal_result = employee_client.post("/api/employee-portal/goals", json={
+            "title": "Hoàn thành khóa học",
+            "description": "Học khóa dữ liệu.",
+            "dueDate": "2026-12-01",
+        })
+        self.assertEqual(goal_result.status_code, 201)
+        goal = goal_result.get_json()["goal"]
+        self.assertEqual(employee_client.put(f"/api/employee-portal/goals/{goal['id']}", json={
+            "title": goal["title"],
+            "description": goal["description"],
+            "dueDate": goal["dueDate"],
+            "progress": 100,
+        }).get_json()["goal"]["completed"], True)
+
+        task_result = employee_client.post("/api/employee-portal/tasks", json={
+            "title": "Họp nhóm",
+            "dueDate": "2026-11-25",
+            "priority": "high",
+        })
+        self.assertEqual(task_result.status_code, 201)
+        task = task_result.get_json()["task"]
+        self.assertEqual(employee_client.patch(f"/api/employee-portal/tasks/{task['id']}", json={
+            "completed": True,
+        }).get_json()["task"]["completed"], True)
+
+        enrollment = employee_client.post("/api/employee-portal/training/data-basics/enroll")
+        self.assertEqual(enrollment.status_code, 201)
+        self.assertEqual(
+            employee_client.post("/api/employee-portal/training/data-basics/enroll").get_json()["enrollment"]["id"],
+            enrollment.get_json()["enrollment"]["id"],
+        )
+        self.assertEqual(employee_client.patch("/api/employee-portal/training/data-basics").status_code, 200)
+        portal = employee_client.get("/api/employee-portal").get_json()
+        self.assertTrue(portal["goals"][0]["completed"])
+        self.assertTrue(portal["tasks"][0]["completed"])
+        self.assertEqual(portal["enrollments"][0]["status"], "completed")
+
+        other_employee = app.test_client()
+        other_employee.post("/api/auth/register", json={
+            "name": "Nhân viên khác",
+            "email": "goals-other@example.com",
+            "password": "goals-other-password",
+        })
+        self.assertEqual(other_employee.put(f"/api/employee-portal/goals/{goal['id']}", json={
+            "title": goal["title"],
+            "progress": 50,
+        }).status_code, 404)
+        self.assertEqual(other_employee.patch(f"/api/employee-portal/tasks/{task['id']}", json={
+            "completed": True,
+        }).status_code, 404)
+
+    def test_employee_announcements_anonymous_feedback_and_self_reviews(self):
+        employee_client = app.test_client()
+        employee_client.post("/api/auth/register", json={
+            "name": "Nhân viên góp ý",
+            "email": "feedback@example.com",
+            "password": "feedback-password-123",
+        })
+        portal = employee_client.get("/api/employee-portal").get_json()
+        announcement_id = portal["announcements"][0]["id"]
+        self.assertEqual(employee_client.post(
+            f"/api/employee-portal/announcements/{announcement_id}/read"
+        ).status_code, 200)
+        self.assertIn(
+            announcement_id,
+            employee_client.get("/api/employee-portal").get_json()["readAnnouncementIds"],
+        )
+
+        feedback = employee_client.post("/api/employee-portal/feedback", json={
+            "category": "workload",
+            "rating": 2,
+            "message": "Cần cân đối khối lượng công việc.",
+        })
+        self.assertEqual(feedback.status_code, 201)
+        admin_portal = self.client.get("/api/admin/employee-portal").get_json()
+        self.assertEqual(admin_portal["feedback"][0]["message"], "Cần cân đối khối lượng công việc.")
+        self.assertNotIn("userId", admin_portal["feedback"][0])
+        self.assertNotIn("email", admin_portal["feedback"][0])
+
+        announcement = self.client.post("/api/admin/employee-portal/announcements", json={
+            "title": "Thông báo mới",
+            "body": "Nội dung gửi tới nhân viên.",
+        })
+        self.assertEqual(announcement.status_code, 201)
+        self.assertIn(
+            announcement.get_json()["announcement"]["id"],
+            [item["id"] for item in employee_client.get("/api/employee-portal").get_json()["announcements"]],
+        )
+
+        review = employee_client.post("/api/employee-portal/reviews", json={
+            "period": "2026-11",
+            "ratings": {"performance": 4, "wellbeing": 3, "growth": 5},
+            "accomplishment": "Hoàn thành kế hoạch.",
+            "challenge": "Cần thêm thời gian tập trung.",
+        })
+        self.assertEqual(review.status_code, 201)
+        review_id = review.get_json()["review"]["id"]
+        self.assertEqual(employee_client.post("/api/employee-portal/reviews", json={
+            "period": "2026-11",
+            "ratings": {"performance": 4, "wellbeing": 3, "growth": 5},
+        }).status_code, 409)
+        self.assertEqual(self.client.patch(f"/api/admin/employee-portal/reviews/{review_id}", json={
+            "adminNote": "Cảm ơn bạn đã chia sẻ.",
+        }).status_code, 200)
+        self.assertEqual(
+            employee_client.get("/api/employee-portal").get_json()["reviews"][0]["adminNote"],
+            "Cảm ơn bạn đã chia sẻ.",
+        )
+
+        anonymous = app.test_client()
+        self.assertEqual(anonymous.get("/api/employee-portal").status_code, 401)
+        self.assertEqual(self.client.get("/api/employee-portal").status_code, 403)
+
     def test_admin_account_controls_preserve_one_active_admin(self):
         self_disabled = self.client.patch("/api/admin/accounts/admin-test", json={
             "active": False,

@@ -39,7 +39,7 @@
     app.updateAvatarElement(document.getElementById("topAvatar"), user);
     document.getElementById("topAvatar").title = user.email;
     document.querySelectorAll(".page-view").forEach((view) => view.classList.remove("active"));
-    app.navigateTo(isAdmin ? "overview" : "profile");
+    app.navigateTo(isAdmin ? "overview" : "employee-tools");
     document.getElementById("authView").hidden = true;
     document.getElementById("appShell").hidden = false;
   };

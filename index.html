@@ -57,6 +57,7 @@
         <button class="nav-item" data-admin-only data-page="analytics"><span class="nav-icon">▥</span><span>Phân tích dữ liệu</span></button>
         <button class="nav-item" data-admin-only data-page="model"><span class="nav-icon">◉</span><span>Mô hình ML</span></button>
         <button class="nav-item" data-page="profile"><span class="nav-icon">♙</span><span>Quản lý tài khoản</span></button>
+        <button class="nav-item employee-only" data-page="employee-tools"><span class="nav-icon">▣</span><span>Tiện ích nhân viên</span></button>
         <button class="nav-item employee-only" data-page="my-history"><span class="nav-icon">◷</span><span>Lịch sử của tôi</span><span class="nav-count" id="myPredictionCount">0</span></button>
       </nav>
       <div class="sidebar-section-label" data-admin-only>QUẢN LÝ</div>
@@ -252,6 +253,61 @@
           </div>
           <article class="panel full-table-panel account-requests employee-only"><div class="panel-heading"><div><h2>Yêu cầu hỗ trợ của tôi</h2><p>Theo dõi trạng thái các yêu cầu đã gửi.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>THỜI GIAN</th><th>TIÊU ĐỀ</th><th>NỘI DUNG</th><th>TRẠNG THÁI</th></tr></thead><tbody id="mySupportRequests"></tbody></table></div></article>
         </section>
+        <section class="page-view employee-only" id="page-employee-tools">
+          <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> KHÔNG GIAN CÁ NHÂN</div><h1>Tiện ích nhân viên</h1><p class="page-subtitle">Quản lý nghỉ phép, mục tiêu, lịch cá nhân, đào tạo và phản hồi của bạn.</p></div></div>
+          <div class="employee-account-summary portal-summary">
+            <article class="panel"><span>Đơn nghỉ đang chờ</span><strong id="portalPendingLeaves">0</strong><small>Theo dõi trạng thái duyệt của admin.</small></article>
+            <article class="panel"><span>Mục tiêu đang thực hiện</span><strong id="portalActiveGoals">0</strong><small>Cập nhật tiến độ theo kế hoạch cá nhân.</small></article>
+            <article class="panel"><span>Việc cần làm</span><strong id="portalOpenTasks">0</strong><small>Các nhắc việc chưa hoàn thành.</small></article>
+          </div>
+          <div class="portal-grid">
+            <article class="panel portal-panel"><div class="panel-heading"><div><h2>Thông báo nội bộ</h2><p id="portalUnreadCount">Thông tin mới nhất từ StayWise.</p></div></div><div class="portal-list" id="employeeAnnouncements"></div></article>
+            <article class="panel portal-panel"><div class="panel-heading"><div><h2>Đơn xin nghỉ phép</h2><p>Gửi đơn và theo dõi kết quả phê duyệt.</p></div></div>
+              <form class="portal-form" id="leaveForm"><div class="form-grid">
+                <label class="form-field"><span>Loại nghỉ</span><select name="type"><option value="annual">Nghỉ phép năm</option><option value="sick">Nghỉ ốm</option><option value="personal">Việc cá nhân</option><option value="other">Khác</option></select></label>
+                <label class="form-field"><span>Từ ngày</span><input name="startDate" type="date" required></label>
+                <label class="form-field"><span>Đến ngày</span><input name="endDate" type="date" required></label>
+                <label class="form-field form-full"><span>Lý do</span><textarea name="reason" rows="2" maxlength="1000" required></textarea></label>
+              </div><button class="button button-primary" type="submit">Gửi đơn nghỉ phép</button></form>
+              <div class="portal-list" id="employeeLeaveRequests"></div>
+            </article>
+            <article class="panel portal-panel"><div class="panel-heading"><div><h2>Mục tiêu cá nhân</h2><p>Chia nhỏ định hướng phát triển thành mục tiêu có hạn hoàn thành.</p></div></div>
+              <form class="portal-form" id="goalForm"><div class="form-grid">
+                <label class="form-field"><span>Tên mục tiêu</span><input name="title" maxlength="120" required></label>
+                <label class="form-field"><span>Hạn hoàn thành</span><input name="dueDate" type="date"></label>
+                <label class="form-field form-full"><span>Mô tả</span><textarea name="description" rows="2" maxlength="1000"></textarea></label>
+              </div><button class="button button-primary" type="submit">Thêm mục tiêu</button></form>
+              <div class="portal-list" id="employeeGoals"></div>
+            </article>
+            <article class="panel portal-panel"><div class="panel-heading"><div><h2>Lịch và việc cần làm</h2><p>Tạo nhắc việc cá nhân và đánh dấu khi hoàn tất.</p></div></div>
+              <form class="portal-form" id="taskForm"><div class="form-grid">
+                <label class="form-field"><span>Công việc</span><input name="title" maxlength="120" required></label>
+                <label class="form-field"><span>Ngày nhắc</span><input name="dueDate" type="date"></label>
+                <label class="form-field"><span>Ưu tiên</span><select name="priority"><option value="normal">Bình thường</option><option value="high">Cao</option><option value="low">Thấp</option></select></label>
+                <label class="form-field form-full"><span>Ghi chú</span><textarea name="details" rows="2" maxlength="1000"></textarea></label>
+              </div><button class="button button-primary" type="submit">Tạo nhắc việc</button></form>
+              <div class="portal-list" id="employeeTasks"></div>
+            </article>
+            <article class="panel portal-panel portal-wide"><div class="panel-heading"><div><h2>Khóa học và đào tạo</h2><p>Đăng ký khóa học, theo dõi trạng thái và ghi nhận hoàn thành.</p></div></div><div class="portal-course-grid" id="employeeCourses"></div></article>
+            <article class="panel portal-panel"><div class="panel-heading"><div><h2>Khảo sát và góp ý ẩn danh</h2><p>Không lưu tên, email hay mã tài khoản cùng với nội dung góp ý.</p></div></div>
+              <form class="portal-form" id="feedbackForm"><label class="form-field"><span>Chủ đề</span><select name="category"><option value="workload">Khối lượng công việc</option><option value="manager">Quản lý và hỗ trợ</option><option value="environment">Môi trường làm việc</option><option value="growth">Cơ hội phát triển</option><option value="other">Khác</option></select></label>
+                <label class="form-field"><span>Mức đánh giá (1–5)</span><select name="rating"><option value="5">5 — Rất hài lòng</option><option value="4">4 — Hài lòng</option><option value="3">3 — Bình thường</option><option value="2">2 — Chưa hài lòng</option><option value="1">1 — Không hài lòng</option></select></label>
+                <label class="form-field"><span>Góp ý</span><textarea name="message" rows="3" maxlength="2000" placeholder="Chia sẻ điều bạn nghĩ có thể giúp cải thiện môi trường làm việc."></textarea></label>
+                <button class="button button-primary" type="submit">Gửi góp ý ẩn danh</button></form>
+            </article>
+            <article class="panel portal-panel"><div class="panel-heading"><div><h2>Tự đánh giá định kỳ</h2><p>Chia sẻ tiến độ, sức khỏe và cơ hội phát triển với admin.</p></div></div>
+              <form class="portal-form" id="reviewForm"><label class="form-field"><span>Kỳ đánh giá</span><input name="period" type="month" required></label>
+                <div class="form-grid">
+                  <label class="form-field"><span>Hiệu quả công việc (1–5)</span><select name="performance"><option value="5">5 — Rất tốt</option><option value="4">4 — Tốt</option><option value="3" selected>3 — Đạt</option><option value="2">2 — Cần hỗ trợ</option><option value="1">1 — Khó khăn</option></select></label>
+                  <label class="form-field"><span>Sức khỏe, cân bằng (1–5)</span><select name="wellbeing"><option value="5">5 — Rất tốt</option><option value="4">4 — Tốt</option><option value="3" selected>3 — Bình thường</option><option value="2">2 — Cần hỗ trợ</option><option value="1">1 — Khó khăn</option></select></label>
+                  <label class="form-field"><span>Cơ hội phát triển (1–5)</span><select name="growth"><option value="5">5 — Rất tốt</option><option value="4">4 — Tốt</option><option value="3" selected>3 — Bình thường</option><option value="2">2 — Cần thêm cơ hội</option><option value="1">1 — Khó khăn</option></select></label>
+                  <label class="form-field"><span>Kết quả nổi bật</span><textarea name="accomplishment" rows="2" maxlength="1500"></textarea></label>
+                  <label class="form-field"><span>Khó khăn hoặc hỗ trợ cần thiết</span><textarea name="challenge" rows="2" maxlength="1500"></textarea></label>
+                </div><button class="button button-primary" type="submit">Gửi bản tự đánh giá</button></form>
+              <div class="portal-list" id="employeeReviews"></div>
+            </article>
+          </div>
+        </section>
         <section class="page-view" id="page-my-history">
           <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> RIÊNG TƯ CÁ NHÂN</div><h1>Lịch sử của tôi</h1><p class="page-subtitle">Chỉ hiển thị những lần phân tích được thực hiện trong tài khoản này.</p></div><button class="button button-primary" id="myRiskCheck">Cập nhật dự đoán của tôi</button></div>
           <div class="employee-account-summary"><article class="panel"><span>Tổng lần dự đoán cá nhân</span><strong id="myHistoryCount">0</strong><small>Lưu trữ trong ứng dụng.</small></article><article class="panel"><span>Rủi ro trung bình</span><strong id="myAverageRisk">—</strong><small>Trên các lần dự đoán cá nhân.</small></article></div>
@@ -262,6 +318,11 @@
           <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> QUẢN TRỊ HỆ THỐNG</div><h1>Tài khoản &amp; yêu cầu hỗ trợ</h1><p class="page-subtitle">Quản lý quyền truy cập và xử lý yêu cầu từ nhân viên.</p></div></div>
           <article class="panel full-table-panel"><div class="panel-heading"><div><h2>Tài khoản người dùng</h2><p>Quyền admin không thể tự đăng ký; chỉ cấp cho người đáng tin cậy.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>NGƯỜI DÙNG</th><th>VAI TRÒ</th><th>TRẠNG THÁI</th><th>NGÀY TẠO</th><th></th></tr></thead><tbody id="adminAccountsTable"></tbody></table></div></article>
           <article class="panel full-table-panel admin-requests"><div class="panel-heading"><div><h2>Yêu cầu hỗ trợ</h2><p>Thông tin nhân viên gửi riêng tới quản trị viên.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>NHÂN VIÊN</th><th>YÊU CẦU</th><th>NỘI DUNG</th><th>NGÀY GỬI</th><th>TRẠNG THÁI</th></tr></thead><tbody id="adminSupportTable"></tbody></table></div></article>
+          <div class="page-heading portal-admin-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> DỊCH VỤ NHÂN VIÊN</div><h2>Quản lý tiện ích nhân viên</h2><p class="page-subtitle">Duyệt đơn nghỉ, đăng thông báo, đọc góp ý ẩn danh và phản hồi tự đánh giá.</p></div></div>
+          <article class="panel portal-panel"><div class="panel-heading"><div><h2>Đăng thông báo nội bộ</h2><p>Thông báo sẽ xuất hiện trong không gian cá nhân của tất cả nhân viên.</p></div></div><form class="portal-form admin-announcement-form" id="announcementForm"><div class="form-grid"><label class="form-field"><span>Tiêu đề</span><input name="title" maxlength="120" required></label><label class="form-field form-full"><span>Nội dung</span><textarea name="body" rows="3" maxlength="2000" required></textarea></label></div><button class="button button-primary" type="submit">Đăng thông báo</button></form><div class="portal-list" id="adminAnnouncements"></div></article>
+          <article class="panel full-table-panel portal-admin-table"><div class="panel-heading"><div><h2>Đơn xin nghỉ phép</h2><p>Duyệt hoặc từ chối các đơn của nhân viên.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>NHÂN VIÊN</th><th>THỜI GIAN</th><th>LOẠI</th><th>LÝ DO</th><th>TRẠNG THÁI</th><th></th></tr></thead><tbody id="adminLeaveRequests"></tbody></table></div></article>
+          <article class="panel full-table-panel portal-admin-table"><div class="panel-heading"><div><h2>Góp ý ẩn danh</h2><p>Không có tên hoặc email; chỉ hiển thị chủ đề, mức đánh giá và nội dung.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>THỜI GIAN</th><th>CHỦ ĐỀ</th><th>ĐÁNH GIÁ</th><th>GÓP Ý</th></tr></thead><tbody id="adminFeedback"></tbody></table></div></article>
+          <article class="panel full-table-panel portal-admin-table"><div class="panel-heading"><div><h2>Tự đánh giá nhân viên</h2><p>Xem đánh giá đã gửi và để lại phản hồi hỗ trợ.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>NHÂN VIÊN</th><th>KỲ</th><th>ĐIỂM</th><th>KẾT QUẢ / KHÓ KHĂN</th><th>TRẠNG THÁI</th><th></th></tr></thead><tbody id="adminReviews"></tbody></table></div></article>
         </section>
       </div>
     </main>
@@ -292,6 +353,7 @@
   </dialog>
   <script src="js/core.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/employee_portal.js"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/employees.js"></script>
   <script src="js/analytics.js"></script>
